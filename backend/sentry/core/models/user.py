@@ -1,5 +1,7 @@
 """User model."""
 
+from typing import ClassVar
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -18,9 +20,8 @@ class User(AbstractUser):
     class Meta:  # noqa: D106
         verbose_name = "User"
         verbose_name_plural = "Users"
-        db_table = "users"
-        ordering = ["-id"]
-        indexes = [
+        ordering: ClassVar[list] = ["-id"]
+        indexes: ClassVar[list] = [
             models.Index(fields=["email"]),
             models.Index(fields=["username"]),
         ]

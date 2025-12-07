@@ -20,9 +20,6 @@ jobs:
       
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'poetry'
       
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -30,6 +27,20 @@ jobs:
           version: latest
           virtualenvs-create: true
           virtualenvs-in-project: true
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          # ~/ means home directory in linux
+          # Using pipe character here is equivalent to using multiple path: statements
+          path: |
+            ~/.cache/pypoetry  
+            ./backend/.venv
+          # runner.os is GitHub Action's built-in variable that returns the operating system of the runner
+          # hashFiles('**/poetry.lock') is a GitHub Action's built-in function that returns the hash of the poetry.lock file
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
       
       - name: Install dependencies
         run: poetry install --no-interaction --no-root --with dev
