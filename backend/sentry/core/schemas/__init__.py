@@ -1,10 +1,15 @@
 from .user_schema import UserSchema
-from .auth_schema import LoginRequest, RegisterRequest, TokenResponse, RefreshTokenRequest
+from .auth_schema import (
+    LoginRequest,
+    RegisterRequest,
+    LoginResponse,
+    RefreshTokenRequest,
+)
 
 __all__ = [
     "UserSchema",
     "LoginRequest",
     "RegisterRequest",
-    "TokenResponse",
+    "LoginResponse",
     "RefreshTokenRequest",
 ]

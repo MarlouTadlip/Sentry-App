@@ -2,21 +2,23 @@
 
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from ninja import Schema
+
+User = get_user_model()
 
 
 class UserSchema(Schema):
-    """User response schema."""
+    """User schema."""
 
     id: int
     username: str
-    email: str
     first_name: str
+    middle_name: str
     last_name: str
-    middle_name: str = ""
-    profile_picture: str = ""
+    email: str
+    is_staff: bool
     is_active: bool
+    is_superuser: bool
+    last_login: datetime | None = None
     date_joined: datetime
-
-    class Config:  # noqa: D106
-        from_attributes = True  # Pydantic v2 (Django Ninja 1.0+)

@@ -2,7 +2,12 @@
 
 from datetime import UTC, datetime, timedelta
 
-from common.exceptions import InactiveUserError, InvalidTokenError
+from common.constants.messages import EnvMessages
+from common.exceptions.core import (
+    InactiveUserError,
+    InvalidTokenError,
+    UserNotFoundError,
+)
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from jose import JWTError, jwt
@@ -17,7 +22,7 @@ User = get_user_model()
 class JwtAuth(HttpBearer):
     """JWT authentication."""
 
-    def authenticate(self, _request: HttpRequest, token: str) -> UserSchema | None:
+    def jwt_authenticate(self, _request: HttpRequest, token: str) -> UserSchema | None:
         """Authenticate the user."""
         try:
             payload = decode_jwt_token(token)
@@ -30,16 +35,18 @@ class JwtAuth(HttpBearer):
             if not user.is_active:
                 raise InactiveUserError
 
+            # Convert django object to a pydantic model
             return UserSchema.model_validate(user)
 
         except User.DoesNotExist as ue:
-            raise InvalidTokenError from ue
+            raise UserNotFoundError from ue
         except JWTError as e:
             raise InvalidTokenError from e
 
 
 def decode_jwt_token(token: str) -> dict:
     """Decode the JWT token."""
+    # jwt.decode returns a dictionary of the payload
     return jwt.decode(
         token,
         settings.jwt_secret_key,
@@ -47,15 +54,10 @@ def decode_jwt_token(token: str) -> dict:
     )
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict, expires_in_mins: timedelta) -> str:
     """Create an access token."""
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
-    else:
-        expire = datetime.now(UTC) + timedelta(
-            minutes=settings.jwt_access_token_expire_in_mins,
-        )
+    expire = datetime.now(UTC) + expires_in_mins
     to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(
         to_encode,
@@ -64,15 +66,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     )
 
 
-def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_refresh_token(data: dict, expires_in_mins: timedelta) -> str:
     """Create a refresh token."""
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
-    else:
-        expire = datetime.now(UTC) + timedelta(
-            days=settings.jwt_refresh_token_expire_in_days,
-        )
+    expire = datetime.now(UTC) + expires_in_mins
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(
         to_encode,
@@ -84,15 +81,19 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> 
 def create_token_pair(user: UserSchema) -> dict[str, str]:
     """Create a token pair."""
     access_token_expires = timedelta(minutes=settings.jwt_access_token_expire_in_mins)
+    if not access_token_expires:
+        raise ValueError(EnvMessages.Jwt.MISSING_ENV_ACCESS_TOKEN_EXPIRE_IN_MINS)
     access_token = create_access_token(
         data={"sub": user.id, "username": user.username},
-        expires_delta=access_token_expires,
+        expires_in_mins=access_token_expires,
     )
 
     refresh_token_expires = timedelta(days=settings.jwt_refresh_token_expire_in_days)
+    if not refresh_token_expires:
+        raise ValueError(EnvMessages.Jwt.MISSING_ENV_REFRESH_TOKEN_EXPIRE_IN_DAYS)
     refresh_token = create_refresh_token(
         data={"sub": user.id, "username": user.username},
-        expires_delta=refresh_token_expires,
+        expires_in_mins=refresh_token_expires * 24,
     )
     return {
         "access_token": access_token,

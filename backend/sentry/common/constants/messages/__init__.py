@@ -2,10 +2,12 @@
 
 from .general_messages import GeneralMessages
 from .core.auth_messages import AuthMessages
+from .core.env_messages import EnvMessages
 
 __all__ = [
     "GeneralMessages",
     "AuthMessages",
+    "EnvMessages",
 ]
 
 # ============ SAMPLE USAGE =============
