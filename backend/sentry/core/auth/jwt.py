@@ -2,15 +2,11 @@
 
 from datetime import UTC, datetime, timedelta
 
-from common.constants.messages import EnvMessages
-from common.exceptions.core import (
-    InactiveUserError,
-    InvalidTokenError,
-    UserNotFoundError,
-)
+from common.constants.messages import AuthMessages, EnvMessages
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from jose import JWTError, jwt
+from ninja.errors import AuthenticationError
 from ninja.security import HttpBearer
 from sentry.settings.config import settings
 
@@ -22,36 +18,44 @@ User = get_user_model()
 class JwtAuth(HttpBearer):
     """JWT authentication."""
 
-    def jwt_authenticate(self, _request: HttpRequest, token: str) -> UserSchema | None:
+    def authenticate(self, request: HttpRequest, token: str) -> UserSchema | None:  # noqa: ARG002
         """Authenticate the user."""
         try:
             payload = decode_jwt_token(token)
             user_id = payload.get("sub")
-
-            if not user_id:
-                raise InvalidTokenError
-
             user = User.objects.get(id=user_id)
+
             if not user.is_active:
-                raise InactiveUserError
+                raise AuthenticationError(
+                    message=AuthMessages.JwtAuth.INACTIVE_USER,
+                )
 
-            # Convert django object to a pydantic model
             return UserSchema.model_validate(user)
-
-        except User.DoesNotExist as ue:
-            raise UserNotFoundError from ue
+        except User.DoesNotExist as e:
+            raise AuthenticationError(
+                message=AuthMessages.JwtAuth.USER_NOT_FOUND,
+            ) from e
         except JWTError as e:
-            raise InvalidTokenError from e
+            raise AuthenticationError(
+                message=AuthMessages.JwtAuth.INVALID_TOKEN,
+            ) from e
 
 
 def decode_jwt_token(token: str) -> dict:
     """Decode the JWT token."""
     # jwt.decode returns a dictionary of the payload
-    return jwt.decode(
-        token,
-        settings.jwt_secret_key,
-        algorithms=[settings.jwt_algorithm],
-    )
+    try:
+        decoded_jwt = jwt.decode(
+            token,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+        )
+    except JWTError as e:
+        raise AuthenticationError(
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+
+    return decoded_jwt
 
 
 def create_access_token(data: dict, expires_in_mins: timedelta) -> str:
@@ -59,11 +63,17 @@ def create_access_token(data: dict, expires_in_mins: timedelta) -> str:
     to_encode = data.copy()
     expire = datetime.now(UTC) + expires_in_mins
     to_encode.update({"exp": expire, "type": "access"})
-    return jwt.encode(
-        to_encode,
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm,
-    )
+    try:
+        encoded_jwt = jwt.encode(
+            to_encode,
+            settings.jwt_secret_key,
+            algorithm=settings.jwt_algorithm,
+        )
+    except JWTError as e:
+        raise AuthenticationError(
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+    return encoded_jwt
 
 
 def create_refresh_token(data: dict, expires_in_mins: timedelta) -> str:
@@ -71,10 +81,36 @@ def create_refresh_token(data: dict, expires_in_mins: timedelta) -> str:
     to_encode = data.copy()
     expire = datetime.now(UTC) + expires_in_mins
     to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(
-        to_encode,
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm,
+    try:
+        encoded_jwt = jwt.encode(
+            to_encode,
+            settings.jwt_secret_key,
+            algorithm=settings.jwt_algorithm,
+        )
+    except JWTError as e:
+        raise AuthenticationError(
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+    return encoded_jwt
+
+
+def create_access_token_from_refresh_token(refresh_token_payload: dict) -> str:
+    """Create a new access token from refresh token payload.
+
+    Args:
+        refresh_token_payload: Decoded refresh token payload
+
+    Returns:
+        New access token string
+
+    """
+    access_token_expires = timedelta(minutes=settings.jwt_access_token_expire_in_mins)
+    if not access_token_expires:
+        raise ValueError(EnvMessages.Jwt.MISSING_ENV_ACCESS_TOKEN_EXPIRE_IN_MINS)
+
+    return create_access_token(
+        data={"sub": refresh_token_payload.get("sub"), "username": refresh_token_payload.get("username")},
+        expires_in_mins=access_token_expires,
     )
 
 

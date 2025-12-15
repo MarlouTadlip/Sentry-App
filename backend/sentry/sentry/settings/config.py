@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         default=True,
         description="Whether Django is in debug mode",
     )
-    django_allowed_hosts: list[str] = Field(
+    django_allowed_hosts: str | list[str] = Field(
         default=[],
         description="Comma-separated list of allowed hosts",
     )
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         default="sentry.settings.dev",
         description="The module to use for Django settings",
     )
-    django_cors_allowed_origins: list[str] = Field(
+    django_cors_allowed_origins: str | list[str] = Field(
         default=[],
         description="Comma-separated list of allowed origins",
     )
@@ -43,6 +43,10 @@ class Settings(BaseSettings):
         default=7,
         description="The expiry time of JWT Refresh Token in days",
     )
+    database_url: str | None = Field(
+        default=None,
+        description="The URL of the database to use",
+    )
 
     @field_validator(
         "django_allowed_hosts",
@@ -50,9 +54,13 @@ class Settings(BaseSettings):
         mode="before",
     )
     @classmethod
-    def parse_string_to_list(cls, v: str) -> list[str]:
+    def parse_string_to_list(cls, v: str | list[str] | None) -> list[str]:
         """Parse a comma-separated string into a list of strings."""
-        if not v:
+        if v is None:
+            return []
+        if isinstance(v, list):
+            return v
+        if not v or v.strip() == "":
             return []
         return [host.strip() for host in v.split(",") if host.strip()]
 

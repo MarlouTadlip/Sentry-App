@@ -4,7 +4,6 @@ from ninja import NinjaAPI
 from sentry.settings.config import settings
 
 from .v1.router import router_v1
-from .v2.router import router_v2
 
 api = NinjaAPI(
     title="Sentry API",
@@ -15,4 +14,3 @@ api = NinjaAPI(
 )
 
 api.add_router("v1", router_v1)
-api.add_router("v2", router_v2)

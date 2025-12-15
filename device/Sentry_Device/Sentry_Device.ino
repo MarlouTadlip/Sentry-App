@@ -6,8 +6,8 @@
 // #include "JsonBuilder.h"    // Commented out for testing
 
 // Wi-Fi
-const char* ssid = "Your_SSID";
-const char* password = "Your_PASSWORD";
+const char* ssid = "GlobeAtHome_fc800_2.4";
+const char* password = "Jbp4MXKG";
 
 // Endpoint to send data to
 // const char* endpoint = "localhost:8080";  // Commented out for testing
@@ -48,6 +48,9 @@ void setup() {
 void loop() {
   // handleHttpClient();  // Commented out for testing
 
+  // Maintain WiFi connection
+  maintainWiFiConnection(ssid, password);
+
   float ax, ay, az;
   readAccel(ax, ay, az);
 
@@ -62,8 +65,8 @@ void loop() {
   //   readingCount++;
   // }
 
-  // Check tilt detection (180 degree threshold)
-  bool currentTilt = isTiltExceeded(roll, pitch, 180.0);
+  // Check tilt detection (90 degree threshold)
+  bool currentTilt = isTiltExceeded(roll, pitch, 90.0);
   // if (currentTilt) {
   //   tiltDetected = true;
   // }

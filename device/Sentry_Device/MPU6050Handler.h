@@ -3,6 +3,8 @@
 
 #include <MPU6050.h>
 
+// MPU6050 by Electronic Cats
+
 extern MPU6050 mpu;
 
 void initMPU();

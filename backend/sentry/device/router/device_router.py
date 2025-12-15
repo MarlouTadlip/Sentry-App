@@ -1,0 +1,21 @@
+"""Device router."""
+
+from django.http import HttpRequest
+from ninja import Router
+
+from device.controllers.device_controller import receive_device_data
+from device.schemas import DeviceDataRequest, DeviceDataResponse
+
+device_router = Router(tags=["device"])
+
+
+@device_router.post("/data", response=DeviceDataResponse)
+def receive_device_data_endpoint(
+    request: HttpRequest,
+    payload: DeviceDataRequest,
+) -> DeviceDataResponse:
+    """Endpoint the embedded device can POST MPU6050 data to.
+
+    URL (once wired into v1): /api/v1/device/data
+    """
+    return receive_device_data(request, payload)

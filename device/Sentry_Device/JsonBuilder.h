@@ -3,6 +3,8 @@
 
 #include <ArduinoJson.h>
 
+// ArduinoJson by Benoit Blanchon...
+
 // Builds JSON payload for tilt data
 void buildTiltJson(
     String &out,

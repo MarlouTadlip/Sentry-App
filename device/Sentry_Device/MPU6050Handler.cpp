@@ -2,6 +2,8 @@
 #include <SimpleKalmanFilter.h>
 #include <Wire.h>
 
+// SimpleKalmanFilter by Denys Sene
+
 MPU6050 mpu;
 
 const float ACCEL_RANGE = 32768.0; // ±2g

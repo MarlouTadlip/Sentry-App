@@ -1,4 +1,4 @@
-from .user_schema import UserSchema
+from .user_schema import UserSchema, UserUpdateRequest
 from .auth_schema import (
     LoginRequest,
     RegisterRequest,
@@ -8,6 +8,7 @@ from .auth_schema import (
 
 __all__ = [
     "UserSchema",
+    "UserUpdateRequest",
     "LoginRequest",
     "RegisterRequest",
     "LoginResponse",

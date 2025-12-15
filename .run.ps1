@@ -1,18 +1,21 @@
 # .run.ps1 - Inject .env into current PowerShell session
-# Usage: ./run.ps1 [--dev|--prod|--help]
-#   --dev  -> uses .env.dev
-#   --prod -> uses .env.prod
-#   --help -> shows this help message
+# Usage: ./run.ps1 [-dev|-prod|-help]
+#   -dev  -> uses .env.dev
+#   -prod -> uses .env.prod
+#   -help -> shows this help message
 #   (no arg) -> shows help message
 
 param(
+    [Parameter(Mandatory=$false)]
     [switch]$dev,
+    [Parameter(Mandatory=$false)]
     [switch]$prod,
+    [Parameter(Mandatory=$false)]
     [switch]$help
 )
 
 # Show help if --help is used or no arguments provided
-if ($help -or (-not $dev -and -not $prod)) {
+if ($help -or ((-not $dev) -and (-not $prod))) {
     Write-Host @"
 .run.ps1 - Environment Variable Loader
 
@@ -23,14 +26,14 @@ USAGE:
     ./run.ps1 [OPTIONS]
 
 OPTIONS:
-    --dev      Load environment variables from .env.dev
-    --prod     Load environment variables from .env.prod
-    --help     Show this help message
+    -dev      Load environment variables from .env.dev
+    -prod     Load environment variables from .env.prod
+    -help     Show this help message
 
 EXAMPLES:
-    ./run.ps1 --dev     # Load .env.dev
-    ./run.ps1 --prod    # Load .env.prod
-    ./run.ps1 --help    # Show this help
+    ./run.ps1 -dev     # Load .env.dev
+    ./run.ps1 -prod    # Load .env.prod
+    ./run.ps1 -help    # Show this help
 
 NOTES:
     - If no option is provided, this help message is displayed

@@ -1,6 +1,23 @@
 """Development settings."""
 
-from .base import *  # noqa: F403
+from .base import (
+    AUTH_PASSWORD_VALIDATORS,
+    AUTHENTICATION_BACKENDS,
+    BASE_DIR,
+    DATABASES,
+    DEBUG,
+    DEFAULT_AUTO_FIELD,
+    LANGUAGE_CODE,
+    MEDIA_ROOT,
+    MEDIA_URL,
+    ROOT_URLCONF,
+    SECRET_KEY,
+    TEMPLATES,
+    TIME_ZONE,
+    USE_I18N,
+    USE_TZ,
+    WSGI_APPLICATION,
+)
 from .config import settings
 
 ALLOWED_HOSTS = settings.django_allowed_hosts
@@ -19,6 +36,8 @@ INSTALLED_APPS = [
     # "django.contrib.staticfiles",
     "corsheaders",
     "ninja",
+    "core",
+    "device",
 ]
 
 MIDDLEWARE = [
@@ -31,3 +50,74 @@ MIDDLEWARE = [
     # "django.contrib.messages.middleware.MessageMiddleware",
     # "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Create logs directory if it doesn't exist
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
+# Logging configuration
+# https://docs.djangoproject.com/en/5.1/topics/logging/
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "sentry.log",
+            "maxBytes": 1024 * 1024 * 10,  # 10 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
+        "device_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "device.log",
+            "maxBytes": 1024 * 1024 * 10,  # 10 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console", "file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "device": {
+            "handlers": ["console", "device_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

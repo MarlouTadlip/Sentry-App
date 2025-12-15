@@ -30,5 +30,6 @@ class AuthMessages:
     class JwtAuth:
         """JWT Authentication messages."""
 
-        ACCESS_TOKEN_EXPIRED: Final[str] = "Access token expired. Please login again."  # noqa: S105
-        REFRESH_TOKEN_EXPIRED: Final[str] = "Refresh token expired. Please login again."  # noqa: S105
+        USER_NOT_FOUND: Final[str] = "User not found from the token payload."
+        INVALID_TOKEN: Final[str] = "Invalid token. Either the token is expired or invalid."  # noqa: S105
+        INACTIVE_USER: Final[str] = "User is inactive. Please contact support."

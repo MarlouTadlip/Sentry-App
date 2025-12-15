@@ -1,6 +1,23 @@
 """Production settings."""
 
-from .base import *  # noqa: F403
+from .base import (
+    AUTH_PASSWORD_VALIDATORS,
+    AUTHENTICATION_BACKENDS,
+    BASE_DIR,
+    DATABASES,
+    DEBUG,
+    DEFAULT_AUTO_FIELD,
+    LANGUAGE_CODE,
+    MEDIA_ROOT,
+    MEDIA_URL,
+    ROOT_URLCONF,
+    SECRET_KEY,
+    TEMPLATES,
+    TIME_ZONE,
+    USE_I18N,
+    USE_TZ,
+    WSGI_APPLICATION,
+)
 from .config import settings
 
 ALLOWED_HOSTS = settings.django_allowed_hosts
@@ -19,6 +36,8 @@ INSTALLED_APPS = [
     # "django.contrib.staticfiles",
     "corsheaders",
     "ninja",
+    "core",
+    "device",
 ]
 
 MIDDLEWARE = [

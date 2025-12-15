@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from urllib.parse import urlparse
 
 from .config import settings
 
@@ -42,12 +43,27 @@ WSGI_APPLICATION = "sentry.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
-}
+# Parse DATABASE_URL
+# Format: postgresql://user:password@host:port/database
+if settings.database_url:
+    url = urlparse(settings.database_url)
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": url.path[1:],  # Remove leading '/'
+            "USER": url.username,
+            "PASSWORD": url.password,
+            "HOST": url.hostname,
+            "PORT": url.port or 5432,
+        },
+    }
+else:
+    message = (
+        "DATABASE_URL environment variable is required in production. "
+        "Please set DATABASE_URL to your PostgreSQL connection string."
+    )
+    raise ValueError(message)
 
 
 # Password validation
@@ -71,6 +87,8 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     "core.auth.backends.EmailOrUsernameBackend",
 ]
+
+AUTH_USER_MODEL = "core.User"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
