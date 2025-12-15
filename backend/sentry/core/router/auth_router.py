@@ -6,12 +6,28 @@ from django.http import HttpRequest
 from ninja import Router
 
 from core.auth.jwt import JwtAuth
-from core.controllers.auth_controller import get_current_user, login, refresh_token, register
+from core.controllers.auth_controller import (
+    forgot_password_controller,
+    get_current_user,
+    is_user_verified,
+    login,
+    refresh_token,
+    register,
+    reset_password_controller,
+    send_verification_email_controller,
+    verify_email_controller,
+)
 from core.schemas import (
+    EmailVerificationRequest,
+    ForgotPasswordRequest,
+    IsUserVerifiedResponse,
     LoginRequest,
     LoginResponse,
+    MessageResponse,
     RefreshTokenRequest,
     RegisterRequest,
+    ResetPasswordRequest,
+    VerifyEmailRequest,
 )
 
 auth_router = Router(tags=["auth"])
@@ -50,3 +66,47 @@ def current_user_endpoint(
 ) -> dict[str, Any]:
     """Get current authenticated user."""
     return get_current_user(request)
+
+
+@auth_router.get("/me/is-verified", response=IsUserVerifiedResponse, auth=JwtAuth())
+def is_user_verified_endpoint(
+    request: HttpRequest,
+) -> IsUserVerifiedResponse:
+    """Check if user is verified."""
+    return is_user_verified(request.user.id)  # pyright: ignore[reportAttributeAccessIssue]
+
+
+@auth_router.post("/email/send-verification-email", response=MessageResponse)
+def send_verification_email_endpoint(
+    request: HttpRequest,
+    data: EmailVerificationRequest,
+) -> MessageResponse:
+    """Send email verification email."""
+    return send_verification_email_controller(request, data)
+
+
+@auth_router.post("/email/verify", response=MessageResponse)
+def verify_email_endpoint(
+    request: HttpRequest,
+    data: VerifyEmailRequest,
+) -> MessageResponse:
+    """Verify email address."""
+    return verify_email_controller(request, data)
+
+
+@auth_router.post("/email/forgot-password", response=MessageResponse)
+def forgot_password_endpoint(
+    request: HttpRequest,
+    data: ForgotPasswordRequest,
+) -> MessageResponse:
+    """Send password reset email."""
+    return forgot_password_controller(request, data)
+
+
+@auth_router.post("/email/reset-password", response=MessageResponse)
+def reset_password_endpoint(
+    request: HttpRequest,
+    data: ResetPasswordRequest,
+) -> MessageResponse:
+    """Reset password."""
+    return reset_password_controller(request, data)

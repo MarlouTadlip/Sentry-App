@@ -1,9 +1,11 @@
 """Auth router controller."""
 
+import logging
 from typing import Any
 
 from common.constants.messages import AuthMessages
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
 from django.http import HttpRequest
 from jose import JWTError
@@ -11,19 +13,31 @@ from ninja.errors import AuthenticationError, HttpError, ValidationError
 
 from core.auth.jwt import (
     create_access_token_from_refresh_token,
+    create_email_verification_token,
+    create_password_reset_token,
     create_token_pair,
+    decode_and_verify_email_token,
     decode_jwt_token,
 )
 from core.auth.utils import get_access_token_from_header, validate_access_token
 from core.schemas import (
+    EmailVerificationRequest,
+    ForgotPasswordRequest,
+    IsUserVerifiedResponse,
     LoginRequest,
     LoginResponse,
+    MessageResponse,
     RefreshTokenRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     UserSchema,
+    VerifyEmailRequest,
 )
+from core.utils.email_utils import send_password_reset_email, send_verification_email
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 def login(
@@ -67,6 +81,7 @@ def login(
             status_code=500,
             message=str(e),
         ) from e
+    tokens["message"] = AuthMessages.Login.SUCCESS
     return LoginResponse(**tokens)
 
 
@@ -115,16 +130,27 @@ def register(
             )
         raise ValidationError(errors=errors)
 
-    # Create new user
+    # Create new user (unverified until email is verified)
     user_data = data.model_dump(exclude={"password"})
     user = User.objects.create_user(
         password=data.password,
+        is_verified=False,  # User must verify email before verification
         **user_data,
+    )
+
+    # Send verification email
+    token = create_email_verification_token(user.id)
+    user_name = f"{user.first_name} {user.last_name}".strip() or user.username
+    send_verification_email(
+        user_email=user.email,
+        token=token,
+        user_name=user_name,
     )
 
     # Generate tokens for the newly registered user
     user_schema = UserSchema.model_validate(user)
     tokens = create_token_pair(user_schema)
+    tokens["message"] = AuthMessages.Register.SUCCESS
     return LoginResponse(**tokens)
 
 
@@ -200,6 +226,7 @@ def refresh_token(
             access_token=new_access_token,
             refresh_token=refresh_token_str,  # Return the same refresh token
             token_type="Bearer",  # noqa: S106
+            message=AuthMessages.RefreshToken.SUCCESS,
         )
 
     except JWTError:
@@ -229,3 +256,202 @@ def get_current_user(request: HttpRequest) -> dict[str, Any]:  # noqa: ARG001
     return {
         "message": "User is currently authenticated",
     }
+
+
+def is_user_verified(user_id: int) -> IsUserVerifiedResponse:
+    """Check if user is verified."""
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        raise HttpError(
+            status_code=404,
+            message="User not found.",
+        ) from None
+    message = "User is verified" if user.is_verified else "User is not verified"
+    return IsUserVerifiedResponse(
+        is_verified=user.is_verified,
+        message=message,
+    )
+
+
+def send_verification_email_controller(
+    _request: HttpRequest,
+    data: EmailVerificationRequest,
+) -> MessageResponse:
+    """Send email verification email.
+
+    Args:
+        _request: The request object
+        data: Email verification request data
+
+    Returns:
+        Message response
+
+    """
+    try:
+        user = User.objects.get(email=data.email)
+    except User.DoesNotExist:
+        # Don't reveal if email exists or not for security
+        return MessageResponse(message=AuthMessages.EmailVerification.EMAIL_SENT)
+
+    if user.is_active:
+        return MessageResponse(message=AuthMessages.EmailVerification.ALREADY_VERIFIED)
+
+    # Create verification token
+    token = create_email_verification_token(user.id)
+
+    # Send email
+    user_name = f"{user.first_name} {user.last_name}".strip() or user.username
+    send_verification_email(
+        user_email=user.email,
+        token=token,
+        user_name=user_name,
+    )
+
+    return MessageResponse(message=AuthMessages.EmailVerification.EMAIL_SENT)
+
+
+def verify_email_controller(
+    _request: HttpRequest,
+    data: VerifyEmailRequest,
+) -> MessageResponse:
+    """Verify email address.
+
+    Args:
+        _request: The request object
+        data: Verify email request data
+
+    Returns:
+        Message response
+
+    Raises:
+        HttpError: If token is invalid or expired
+        AuthenticationError: If token validation fails
+
+    """
+    try:
+        payload = decode_and_verify_email_token(
+            token=data.token,
+            expected_type="email_verification",
+        )
+    except AuthenticationError as e:
+        raise HttpError(
+            status_code=404,
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+
+    # Get user ID from token
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HttpError(
+            status_code=404,
+            message=AuthMessages.JwtAuth.USER_NOT_FOUND,
+        )
+
+    try:
+        user = User.objects.get(id=int(user_id))
+    except (ValueError, User.DoesNotExist) as e:
+        raise HttpError(
+            status_code=404,
+            message=AuthMessages.JwtAuth.USER_NOT_FOUND,
+        ) from e
+
+    # Verify user
+    user.is_verified = True
+    user.save(update_fields=["is_verified"])
+
+    return MessageResponse(message=AuthMessages.EmailVerification.EMAIL_VERIFIED)
+
+
+def forgot_password_controller(
+    _request: HttpRequest,
+    data: ForgotPasswordRequest,
+) -> MessageResponse:
+    """Send password reset email.
+
+    Args:
+        _request: The request object
+        data: Forgot password request data
+
+    Returns:
+        Message response
+
+    """
+    try:
+        user = User.objects.get(email=data.email, is_verified=True)
+    except User.DoesNotExist:
+        # Don't reveal if email exists or not for security
+        return MessageResponse(message=AuthMessages.PasswordReset.EMAIL_SENT)
+
+    # Create password reset token
+    token = create_password_reset_token(user.id)
+
+    # Send email
+    user_name = f"{user.first_name} {user.last_name}".strip() or user.username
+    send_password_reset_email(
+        user_email=user.email,
+        token=token,
+        user_name=user_name,
+    )
+
+    return MessageResponse(message=AuthMessages.PasswordReset.EMAIL_SENT)
+
+
+def reset_password_controller(
+    _request: HttpRequest,
+    data: ResetPasswordRequest,
+) -> MessageResponse:
+    """Reset password.
+
+    Args:
+        _request: The request object
+        data: Reset password request data
+
+    Returns:
+        Message response
+
+    Raises:
+        HttpError: If token is invalid or expired
+        AuthenticationError: If token validation fails
+
+    """
+    try:
+        payload = decode_and_verify_email_token(
+            token=data.token,
+            expected_type="password_reset",
+        )
+    except AuthenticationError as e:
+        raise HttpError(
+            status_code=404,
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+
+    # Get user ID from token
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HttpError(
+            status_code=404,
+            message=AuthMessages.JwtAuth.USER_NOT_FOUND,
+        )
+
+    try:
+        user = User.objects.get(id=int(user_id))
+    except (ValueError, User.DoesNotExist) as e:
+        raise HttpError(
+            status_code=404,
+            message=AuthMessages.JwtAuth.USER_NOT_FOUND,
+        ) from e
+
+    # Update password
+    try:
+        validate_password(data.new_password)
+    except ValidationError as e:
+        raise HttpError(
+            status_code=400,
+            message=str(e),
+        ) from e
+
+    user.set_password(data.new_password)
+    user.save(update_fields=["password"])
+
+    return MessageResponse(message=AuthMessages.PasswordReset.PASSWORD_RESET)

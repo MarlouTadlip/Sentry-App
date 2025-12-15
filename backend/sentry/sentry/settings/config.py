@@ -59,6 +59,46 @@ class Settings(BaseSettings):
         default=None,
         description="The password of the admin user",
     )
+    email_host: str | None = Field(
+        default=None,
+        description="The email host to use",
+    )
+    email_port: int | None = Field(
+        default=None,
+        description="The email port to use",
+    )
+    email_host_user: str | None = Field(
+        default=None,
+        description="The email host user to use",
+    )
+    email_host_password: str | None = Field(
+        default=None,
+        description="The email host password to use",
+    )
+    email_use_tls: bool | None = Field(
+        default=None,
+        description="Whether to use TLS for email",
+    )
+    email_use_ssl: bool | None = Field(
+        default=None,
+        description="Whether to use SSL for email",
+    )
+    default_from_email: str | None = Field(
+        default=None,
+        description="The default from email to use",
+    )
+    email_verification_expire_in_hours: int = Field(
+        default=24,
+        description="The expiry time of email verification token in hours",
+    )
+    password_reset_expire_in_hours: int = Field(
+        default=1,
+        description="The expiry time of password reset token in hours",
+    )
+    api_url: str = Field(
+        default="http://localhost:8000",
+        description="The URL of the API",
+    )
 
     @field_validator(
         "django_allowed_hosts",

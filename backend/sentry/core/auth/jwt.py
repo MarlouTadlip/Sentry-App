@@ -48,6 +48,11 @@ class JwtAuth(HttpBearer):
 
         user = User.objects.get(id=user_id)
 
+        if not user.is_active:
+            raise AuthenticationError(
+                message=f"{AuthMessages.JwtAuth.INACTIVE_USER} (User is inactive)",
+            )
+
         request.user = user  # pyright: ignore[reportAttributeAccessIssue]
         return user_id
 
@@ -157,3 +162,95 @@ def create_token_pair(user: UserSchema) -> dict[str, str]:
         "refresh_token": refresh_token,
         "token_type": "Bearer",
     }
+
+
+def create_email_verification_token(user_id: int) -> str:
+    """Create an email verification JWT token.
+
+    Args:
+        user_id: The user's ID
+
+    Returns:
+        JWT token string for email verification
+
+    """
+    expires_in = timedelta(
+        hours=settings.email_verification_expire_in_hours,
+    )  # Email verification tokens expire in 24 hours
+    expire = datetime.now(UTC) + expires_in
+    to_encode = {
+        "sub": str(user_id),
+        "type": "email_verification",
+        "exp": expire,
+    }
+    try:
+        encoded_jwt = jwt.encode(
+            to_encode,
+            settings.jwt_secret_key,
+            algorithm=settings.jwt_algorithm,
+        )
+    except JWTError as e:
+        raise AuthenticationError(
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+    return encoded_jwt
+
+
+def create_password_reset_token(user_id: int) -> str:
+    """Create a password reset JWT token.
+
+    Args:
+        user_id: The user's ID
+
+    Returns:
+        JWT token string for password reset
+
+    """
+    expires_in = timedelta(hours=settings.password_reset_expire_in_hours)  # Password reset tokens expire in 1 hour
+    expire = datetime.now(UTC) + expires_in
+    to_encode = {
+        "sub": str(user_id),
+        "type": "password_reset",
+        "exp": expire,
+    }
+    try:
+        encoded_jwt = jwt.encode(
+            to_encode,
+            settings.jwt_secret_key,
+            algorithm=settings.jwt_algorithm,
+        )
+    except JWTError as e:
+        raise AuthenticationError(
+            message=AuthMessages.JwtAuth.INVALID_TOKEN,
+        ) from e
+    return encoded_jwt
+
+
+def decode_and_verify_email_token(
+    token: str,
+    expected_type: str,
+) -> dict:
+    """Decode and verify an email-related JWT token.
+
+    Args:
+        token: The JWT token string to decode
+        expected_type: Expected token type ("email_verification" or "password_reset")
+
+    Returns:
+        Dictionary containing the decoded payload
+
+    Raises:
+        AuthenticationError: If token is invalid, expired, or has wrong type
+
+    """
+    payload = decode_jwt_token(token)
+
+    # Verify token type matches expected type
+    token_type = payload.get("type")
+    if token_type != expected_type:
+        error_msg = (
+            f"{AuthMessages.JwtAuth.INVALID_TOKEN} (Invalid token type: expected {expected_type}, got {token_type})"
+        )
+        raise AuthenticationError(message=error_msg)
+
+    return payload

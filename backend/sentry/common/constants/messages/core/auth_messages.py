@@ -21,6 +21,11 @@ class AuthMessages:
         SUCCESS: Final[str] = "Registration successful."
         USER_EXISTS: Final[str] = "User already exists. Please login instead."
 
+    class RefreshToken:
+        """Refresh token messages."""
+
+        SUCCESS: Final[str] = "Token refreshed successfully."
+
     class Logout:
         """Logout messages."""
 
@@ -33,3 +38,16 @@ class AuthMessages:
         USER_NOT_FOUND: Final[str] = "User not found from the token payload."
         INVALID_TOKEN: Final[str] = "Invalid token. Either the token is expired or invalid."  # noqa: S105
         INACTIVE_USER: Final[str] = "User is inactive. Please contact support."
+
+    class EmailVerification:
+        """Email verification messages."""
+
+        EMAIL_SENT: Final[str] = "Verification email sent successfully."
+        EMAIL_VERIFIED: Final[str] = "Email verified successfully."
+        ALREADY_VERIFIED: Final[str] = "Email is already verified."
+
+    class PasswordReset:
+        """Password reset messages."""
+
+        EMAIL_SENT: Final[str] = "Password reset email sent successfully."
+        PASSWORD_RESET: Final[str] = "Password reset successfully."  # noqa: S105

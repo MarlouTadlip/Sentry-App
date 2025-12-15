@@ -514,3 +514,113 @@ INFO 2025-12-15 22:58:10 log "PUT /api/v1/core/user/me/profile-picture/update HT
 INFO 2025-12-15 22:58:16 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 396
 INFO 2025-12-15 22:58:38 log "PUT /api/v1/core/user/me/profile-picture/update HTTP/1.1" 200 51
 INFO 2025-12-15 22:58:44 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 413
+INFO 2025-12-16 00:13:40 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:13:45 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:13:47 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:14:23 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:14:25 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:14:53 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:17:10 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\schemas\auth_schema.py changed, reloading.
+INFO 2025-12-16 00:17:14 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:17:18 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:17:20 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:17:29 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:17:32 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:17:47 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\common\constants\messages\core\auth_messages.py changed, reloading.
+INFO 2025-12-16 00:17:49 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:18:14 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:18:17 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:18:20 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:18:22 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:18:58 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:18:59 log "GET /api/openapi.json/ HTTP/1.1" 200 9441
+INFO 2025-12-16 00:19:57 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:20:37 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:20:39 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:20:49 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:20:50 log "GET /api/openapi.json/ HTTP/1.1" 200 9459
+WARNING 2025-12-16 00:21:12 log "POST /api/v1/core/auth/login HTTP/1.1" 401 91
+INFO 2025-12-16 00:22:03 log "POST /api/v1/core/auth/register HTTP/1.1" 200 457
+INFO 2025-12-16 00:24:52 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 52
+INFO 2025-12-16 00:27:39 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:27:55 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:27:55 log "GET /api/openapi.json/ HTTP/1.1" 200 9459
+INFO 2025-12-16 00:28:10 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 52
+WARNING 2025-12-16 00:29:28 log "POST /api/v1/core/auth/login HTTP/1.1" 401 91
+WARNING 2025-12-16 00:29:35 log "POST /api/v1/core/auth/login HTTP/1.1" 401 91
+WARNING 2025-12-16 00:29:40 log "POST /api/v1/core/auth/login HTTP/1.1" 401 91
+WARNING 2025-12-16 00:32:20 log "POST /api/v1/core/auth/login HTTP/1.1" 401 91
+WARNING 2025-12-16 00:32:38 log "POST /api/v1/core/auth/login HTTP/1.1" 401 91
+INFO 2025-12-16 00:33:54 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:33:56 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:36:58 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\auth\jwt.py changed, reloading.
+INFO 2025-12-16 00:37:01 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:38:09 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:38:11 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:38:27 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:38:29 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:42:24 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:42:26 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:42:42 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:42:45 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:44:38 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:44:41 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:44:56 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:44:58 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:45:03 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:45:05 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:45:53 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\schemas\auth_schema.py changed, reloading.
+INFO 2025-12-16 00:45:56 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:46:06 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:46:08 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:46:48 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:46:50 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:47:30 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\schemas\__init__.py changed, reloading.
+INFO 2025-12-16 00:47:33 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:47:57 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:47:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:48:20 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:48:21 log "GET /api/openapi.json/ HTTP/1.1" 200 9835
+INFO 2025-12-16 00:48:59 log "POST /api/v1/core/auth/register HTTP/1.1" 200 457
+INFO 2025-12-16 00:49:34 log "GET /api/v1/core/auth/me HTTP/1.1" 200 46
+WARNING 2025-12-16 00:49:41 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 404 52
+INFO 2025-12-16 00:50:02 log "POST /api/v1/core/auth/login HTTP/1.1" 200 450
+INFO 2025-12-16 00:51:18 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:51:21 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:54:14 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:54:16 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:54:25 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 00:54:27 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:55:02 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:55:02 log "GET /api/openapi.json/ HTTP/1.1" 200 9835
+WARNING 2025-12-16 00:55:12 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 404 29
+INFO 2025-12-16 00:55:50 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:55:53 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:56:00 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:56:00 log "GET /api/openapi.json/ HTTP/1.1" 200 9866
+INFO 2025-12-16 00:56:12 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 35
+INFO 2025-12-16 00:59:05 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:59:07 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:59:14 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:59:17 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:59:46 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 00:59:49 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 00:59:51 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-16 00:59:51 log "GET /api/openapi.json/ HTTP/1.1" 200 10173
+INFO 2025-12-16 01:00:00 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-16 01:02:51 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 01:02:53 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 01:03:07 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\router\auth_router.py changed, reloading.
+INFO 2025-12-16 01:03:09 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 01:03:33 log "POST /api/v1/core/auth/email/verify HTTP/1.1" 200 43
+INFO 2025-12-16 01:03:45 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-16 01:04:05 log "POST /api/v1/core/auth/email/forgot-password HTTP/1.1" 200 54
+INFO 2025-12-16 01:04:34 log "POST /api/v1/core/auth/email/reset-password HTTP/1.1" 200 43
+INFO 2025-12-16 01:07:00 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 01:07:03 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 01:07:14 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 01:07:16 autoreload Watching for file changes with StatReloader
+INFO 2025-12-16 01:07:19 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-16 01:07:21 autoreload Watching for file changes with StatReloader
+ERROR 2025-12-16 01:09:24 log Internal Server Error: /api/v1/core/auth/email/reset-password
+ERROR 2025-12-16 01:09:24 log "POST /api/v1/core/auth/email/reset-password HTTP/1.1" 500 108

@@ -23,6 +23,7 @@ class User(AbstractUser):
         upload_to="user/images/profile_pictures/",
         blank=True,
     )
+    is_verified = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
 
     objects = UserManager()
 

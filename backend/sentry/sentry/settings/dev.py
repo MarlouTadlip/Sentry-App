@@ -60,6 +60,33 @@ MIDDLEWARE = [
     # "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# Email configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+# Validate required email settings
+required_email_settings = {
+    "EMAIL_HOST": settings.email_host,
+    "EMAIL_PORT": settings.email_port,
+    "EMAIL_USE_TLS": settings.email_use_tls,
+    "EMAIL_USE_SSL": settings.email_use_ssl,
+    "EMAIL_HOST_USER": settings.email_host_user,
+    "EMAIL_HOST_PASSWORD": settings.email_host_password,
+    "DEFAULT_FROM_EMAIL": settings.default_from_email,
+}
+
+missing_settings = [name for name, value in required_email_settings.items() if value is None]
+if missing_settings:
+    error_message = f"Missing required email environment variables: {', '.join(missing_settings)}"
+    raise ValueError(error_message)
+
+EMAIL_HOST = required_email_settings["EMAIL_HOST"]
+EMAIL_PORT = required_email_settings["EMAIL_PORT"]
+EMAIL_USE_TLS = required_email_settings["EMAIL_USE_TLS"]
+EMAIL_USE_SSL = required_email_settings["EMAIL_USE_SSL"]
+EMAIL_HOST_USER = required_email_settings["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD = required_email_settings["EMAIL_HOST_PASSWORD"]
+DEFAULT_FROM_EMAIL = required_email_settings["DEFAULT_FROM_EMAIL"]
+
 # Create logs directory if it doesn't exist
 LOGS_DIR = BASE_DIR / "logs"
 LOGS_DIR.mkdir(exist_ok=True)

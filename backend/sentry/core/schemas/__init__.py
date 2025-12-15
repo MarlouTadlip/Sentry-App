@@ -1,9 +1,15 @@
 from .user_schema import UserSchema, UserUpdateRequest
 from .auth_schema import (
+    EmailVerificationRequest,
+    ForgotPasswordRequest,
     LoginRequest,
-    RegisterRequest,
     LoginResponse,
+    MessageResponse,
     RefreshTokenRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    VerifyEmailRequest,
+    IsUserVerifiedResponse,
 )
 
 __all__ = [
@@ -13,4 +19,10 @@ __all__ = [
     "RegisterRequest",
     "LoginResponse",
     "RefreshTokenRequest",
+    "EmailVerificationRequest",
+    "VerifyEmailRequest",
+    "ForgotPasswordRequest",
+    "ResetPasswordRequest",
+    "MessageResponse",
+    "IsUserVerifiedResponse",
 ]
