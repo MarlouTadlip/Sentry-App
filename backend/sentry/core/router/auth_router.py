@@ -38,7 +38,7 @@ def login_endpoint(
     request: HttpRequest,
     credentials: LoginRequest,
 ) -> LoginResponse:
-    """Login endpoint wrapper."""
+    """Login endpoint."""
     return login(request, credentials)
 
 
@@ -47,7 +47,7 @@ def register_endpoint(
     request: HttpRequest,
     data: RegisterRequest,
 ) -> LoginResponse:
-    """Register endpoint wrapper."""
+    """Register endpoint."""
     return register(request, data)
 
 
@@ -56,7 +56,7 @@ def refresh_token_endpoint(
     request: HttpRequest,
     data: RefreshTokenRequest,
 ) -> LoginResponse:
-    """Refresh token endpoint wrapper."""
+    """Refresh token endpoint."""
     return refresh_token(request, data)
 
 
