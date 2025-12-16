@@ -2,11 +2,13 @@ import * as SecureStore from 'expo-secure-store';
 
 const ACCESS_TOKEN_KEY = 'sentry_access_token';
 const REFRESH_TOKEN_KEY = 'sentry_refresh_token';
+const REMEMBER_ME_KEY = 'sentry_remember_me';
 
-export const storeTokens = async (access: string, refresh: string): Promise<void> => {
+export const storeTokens = async (access: string, refresh: string, rememberMe: boolean = true): Promise<void> => {
   try {
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, access);
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refresh);
+    await SecureStore.setItemAsync(REMEMBER_ME_KEY, rememberMe ? 'true' : 'false');
   } catch (error) {
     console.error('Error storing tokens:', error);
     throw error;
@@ -31,10 +33,22 @@ export const getStoredRefreshToken = async (): Promise<string | null> => {
   }
 };
 
+export const getRememberMePreference = async (): Promise<boolean> => {
+  try {
+    const value = await SecureStore.getItemAsync(REMEMBER_ME_KEY);
+    return value === 'true';
+  } catch (error) {
+    console.error('Error retrieving remember me preference:', error);
+    return false;
+  }
+};
+
 export const clearStoredTokens = async (): Promise<void> => {
   try {
     await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    // Optionally clear remember me preference on logout
+    // await SecureStore.deleteItemAsync(REMEMBER_ME_KEY);
   } catch (error) {
     console.error('Error clearing tokens:', error);
     throw error;

@@ -9,12 +9,13 @@ interface AuthContextType {
   // State
   user: User | null;
   isAuthenticated: boolean;
+  isVerified: boolean;
   isLoading: boolean;
   isInitializing: boolean;
   
   // Actions
-  login: (credentials: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  login: (credentials: LoginRequest, rememberMe?: boolean) => Promise<void>;
+  register: (data: RegisterRequest, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -29,16 +30,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
   const [isInitializing, setIsInitializing] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // Fetch current user if token exists
-  const { data: currentUser, isLoading, refetch } = useQuery({
-    queryKey: ['auth', 'currentUser'],
+  // Fetch current user verification status if token exists
+  const { data: verificationData, isLoading, refetch } = useQuery({
+    queryKey: ['auth', 'isVerified'],
     queryFn: async () => {
       const token = await getStoredToken();
       if (!token) {
-        return null;
+        return { is_verified: false, user: null };
       }
-      return authService.getCurrentUser();
+      try {
+        // Use /auth/me/is-verified endpoint
+        const verificationResponse = await authService.isUserVerified();
+        // Also get user info for context
+        const userData = await authService.getCurrentUser();
+        return {
+          is_verified: verificationResponse.is_verified,
+          user: userData,
+        };
+      } catch (error) {
+        console.error('Auth check error:', error);
+        return { is_verified: false, user: null };
+      }
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -63,20 +77,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, [refetch]);
 
-  // Update user state when query data changes
+  // Update user and verification state when query data changes
   useEffect(() => {
-    if (currentUser !== undefined) {
-      setUser(currentUser);
+    if (verificationData !== undefined) {
+      setUser(verificationData.user);
+      setIsVerified(verificationData.is_verified);
     }
-  }, [currentUser]);
+  }, [verificationData]);
 
   // Login function
-  const login = async (credentials: LoginRequest): Promise<void> => {
+  const login = async (credentials: LoginRequest, rememberMe: boolean = true): Promise<void> => {
     try {
       const response = await authService.login(credentials);
-      await storeTokens(response.access_token, response.refresh_token);
+      await storeTokens(response.access_token, response.refresh_token, rememberMe);
+      // Fetch verification status and user data
+      const verificationResponse = await authService.isUserVerified();
       const userData = await authService.getCurrentUser();
       setUser(userData);
+      setIsVerified(verificationResponse.is_verified);
+      queryClient.setQueryData(['auth', 'isVerified'], {
+        is_verified: verificationResponse.is_verified,
+        user: userData,
+      });
       queryClient.setQueryData(['auth', 'currentUser'], userData);
       queryClient.setQueryData(['user', 'info'], userData);
     } catch (error) {
@@ -85,12 +107,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Register function
-  const register = async (data: RegisterRequest): Promise<void> => {
+  const register = async (data: RegisterRequest, rememberMe: boolean = true): Promise<void> => {
     try {
       const response = await authService.register(data);
-      await storeTokens(response.access_token, response.refresh_token);
+      await storeTokens(response.access_token, response.refresh_token, rememberMe);
+      // Fetch verification status and user data
+      const verificationResponse = await authService.isUserVerified();
       const userData = await authService.getCurrentUser();
       setUser(userData);
+      setIsVerified(verificationResponse.is_verified);
+      queryClient.setQueryData(['auth', 'isVerified'], {
+        is_verified: verificationResponse.is_verified,
+        user: userData,
+      });
       queryClient.setQueryData(['auth', 'currentUser'], userData);
       queryClient.setQueryData(['user', 'info'], userData);
     } catch (error) {
@@ -103,6 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await clearStoredTokens();
       setUser(null);
+      setIsVerified(false);
       queryClient.clear();
     } catch (error) {
       console.error('Logout error:', error);
@@ -128,6 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
+    isVerified,
     isLoading,
     isInitializing,
     login,

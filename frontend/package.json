@@ -42,10 +42,12 @@
     "react-native-svg": "15.12.1",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
-    "tamagui": "^1.138.3"
+    "tamagui": "^1.138.3",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "@types/zxcvbn": "^4.4.5",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"

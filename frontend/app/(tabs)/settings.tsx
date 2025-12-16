@@ -1,7 +1,8 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useThemeContext } from "@/context/ThemeContext";
 import { useToast } from "@/hooks/useToast";
-import { Moon, Palette, Settings, Sun } from "@tamagui/lucide-icons";
+import { LogOut, Moon, Palette, Settings, Sun } from "@tamagui/lucide-icons";
+import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { Card, ScrollView, Text, XStack, YStack, Button } from "tamagui";
 import { Pressable, StyleSheet } from "react-native";
@@ -15,6 +16,7 @@ const settings = () => {
   const colors = useThemeColors();
   const { themePreference, toggleTheme, activeTheme } = useThemeContext();
   const toast = useToast();
+  const router = useRouter();
   const isDark = activeTheme === "dark";
   
   // Animated value for switch position (0 = left, 24 = right)
@@ -164,6 +166,39 @@ const settings = () => {
                 Show Warning Toast
               </Button>
             </YStack>
+          </YStack>
+        </Card>
+
+        <Card
+          elevate
+          bordered
+          animation="bouncy"
+          borderColor={colors.border}
+          padded
+          gap={"$4"}
+          enterStyle={{ opacity: 0, y: 10 }}
+          opacity={1}
+          y={0}
+          backgroundColor={colors.cardBackground}
+        >
+          <YStack gap={"$4"}>
+            <XStack alignItems="center" gap={"$2"}>
+              <LogOut color={colors.red} />
+              <Text color={colors.text} fontSize={"$5"} fontWeight={"500"}>
+                Account
+              </Text>
+            </XStack>
+            <Button
+              onPress={() => router.push("/")}
+              backgroundColor={colors.red}
+              color="white"
+              fontWeight="600"
+            >
+              <LogOut size={20} color="#ffffff" />
+              <Text color="#ffffff" fontWeight="600">
+                Logout
+              </Text>
+            </Button>
           </YStack>
         </Card>
       </YStack>

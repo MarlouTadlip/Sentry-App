@@ -16,12 +16,39 @@ import {
   XStack,
   YStack,
 } from "tamagui";
+import { useAuth } from "@/context/AuthContext";
 
-const index = () => {
+const home = () => {
   const colors = useThemeColors();
+  const { isVerified } = useAuth();
+  
   return (
     <ScrollView style={{ backgroundColor: colors.background }}>
       <YStack padding={"$4"} gap={"$4"}>
+        {/* Verification Warning */}
+        {!isVerified && (
+          <Card
+            elevate
+            bordered
+            borderColor={colors.red}
+            padded
+            gap={"$3"}
+            enterStyle={{ opacity: 0, y: 10 }}
+            animation={"bouncy"}
+            backgroundColor={colors.cardBackground}
+          >
+            <XStack gap={"$2"} alignItems="center">
+              <AlertTriangle color={colors.red} size={24} />
+              <Text color={colors.red} fontWeight="bold" fontSize={"$5"}>
+                Verification Required
+              </Text>
+            </XStack>
+            <Text color={colors.text} fontSize={"$4"}>
+              You must be verified before you can access all features.
+            </Text>
+          </Card>
+        )}
+
         <Card
           elevate
           bordered
@@ -219,4 +246,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default home;
