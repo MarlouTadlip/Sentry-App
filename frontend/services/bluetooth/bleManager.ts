@@ -1,78 +1,291 @@
-/** Bluetooth Low Energy (BLE) manager for ESP32 device communication. */
+/** Bluetooth Low Energy (BLE) manager for ESP32 device communication using react-native-ble-plx. */
 
-import { SensorReading } from '@/types/device';
-import { BLEDevice } from '@/types/device';
+import { BleManager, Device, Characteristic, State } from 'react-native-ble-plx';
+import { SensorReading, BLEDevice } from '@/types/device';
+import { 
+  SENTRY_SERVICE_UUID, 
+  SENSOR_DATA_CHARACTERISTIC_UUID,
+  SENTRY_DEVICE_NAME_PATTERN 
+} from '@/utils/constants';
 
-// Note: This is a placeholder structure. 
-// You'll need to install and configure expo-bluetooth or react-native-ble-manager
-// For Expo: npx expo install expo-bluetooth
-// For bare RN: npm install react-native-ble-manager
-
-/**
- * BLE Manager class for handling Bluetooth Low Energy connections
- * 
- * This is a placeholder implementation. You'll need to:
- * 1. Install the appropriate BLE library (expo-bluetooth or react-native-ble-manager)
- * 2. Implement the actual BLE functionality based on the library you choose
- * 3. Update the methods below with the actual BLE API calls
- */
 export class BLEManager {
+  private manager: BleManager;
   private connectedDevice: BLEDevice | null = null;
+  private connectedDeviceInstance: Device | null = null; // Store actual Device instance
   private onDataReceived?: (data: SensorReading) => void;
+  private scanning: boolean = false;
+  private subscription: any = null;
+  private monitorSubscription: any = null;
+  private stopScanTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    try {
+      this.manager = new BleManager();
+    } catch (error) {
+      console.error('❌ Failed to create BLE Manager. Native module may not be available. Run: npx expo prebuild && npx expo run:android', error);
+      throw error;
+    }
+  }
 
   /**
-   * Initialize BLE manager
+   * Initialize BLE manager and request permissions
    */
   async initialize(): Promise<void> {
-    // TODO: Implement BLE initialization
-    // Example for expo-bluetooth:
-    // await Bluetooth.requestPermissionsAsync();
-    // await Bluetooth.enableAsync();
-    console.log('BLE Manager initialized (placeholder)');
+    try {
+      // Wait for BLE manager to be ready
+      const state = await this.manager.state();
+      
+      if (state === 'Unauthorized') {
+        console.warn('⚠️ Bluetooth permission not granted');
+        throw new Error('Bluetooth permission not granted');
+      }
+      
+      console.log('✅ BLE Manager initialized, state:', state);
+    } catch (error) {
+      console.error('❌ Error initializing BLE Manager:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if Bluetooth is enabled
+   */
+  async isBluetoothEnabled(): Promise<boolean> {
+    try {
+      const state = await this.manager.state();
+      return state === State.PoweredOn;
+    } catch (error) {
+      console.error('Error checking Bluetooth state:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Enable Bluetooth (Android only - opens system dialog)
+   */
+  async enableBluetooth(): Promise<void> {
+    try {
+      // react-native-ble-plx doesn't have a direct enable method
+      // User needs to enable it manually via system settings
+      console.warn('⚠️ Please enable Bluetooth in system settings');
+      throw new Error('Bluetooth must be enabled manually');
+    } catch (error) {
+      console.error('Error enabling Bluetooth:', error);
+      throw error;
+    }
   }
 
   /**
    * Scan for ESP32 devices
+   * @param scanDuration Duration in seconds (default: 5)
    */
-  async scanForDevices(): Promise<BLEDevice[]> {
-    // TODO: Implement device scanning
-    // Example for expo-bluetooth:
-    // const devices = await Bluetooth.scanForPeripheralsAsync();
-    // Filter for Sentry devices
-    console.log('Scanning for devices (placeholder)');
-    return [];
+  async scanForDevices(scanDuration: number = 5): Promise<BLEDevice[]> {
+    if (this.scanning) {
+      console.warn('⚠️ Already scanning for devices');
+      return [];
+    }
+
+    try {
+      const isEnabled = await this.isBluetoothEnabled();
+      if (!isEnabled) {
+        console.warn('⚠️ Bluetooth is not enabled');
+        throw new Error('Bluetooth is not enabled');
+      }
+
+      this.scanning = true;
+      const devices: Map<string, BLEDevice> = new Map();
+
+      // Start scanning for devices
+      this.manager.startDeviceScan(
+        [SENTRY_SERVICE_UUID], // Filter by service UUID if available
+        null, // No scan options
+        (error, device) => {
+          if (error) {
+            console.error('❌ Error during scan:', error);
+            return;
+          }
+
+          if (!device) {
+            return;
+          }
+
+          const deviceName = device.name || '';
+          
+          // Filter for Sentry devices (check name contains pattern or service UUID)
+          const hasServiceUUID = device.serviceUUIDs?.some(
+            (uuid) => uuid.toLowerCase() === SENTRY_SERVICE_UUID.toLowerCase()
+          );
+          
+          if (
+            deviceName.toLowerCase().includes(SENTRY_DEVICE_NAME_PATTERN.toLowerCase()) ||
+            hasServiceUUID
+          ) {
+            devices.set(device.id, {
+              id: device.id,
+              name: deviceName || 'Unknown Device',
+              rssi: device.rssi || 0,
+              connected: false,
+            });
+            console.log(`📡 Found device: ${deviceName} (${device.id})`);
+          }
+        }
+      );
+
+      console.log(`🔍 Scanning for devices (${scanDuration}s)...`);
+
+      // Wait for scan to complete
+      await new Promise((resolve) => {
+        this.stopScanTimeout = setTimeout(() => {
+          this.manager.stopDeviceScan();
+          this.scanning = false;
+          resolve(null);
+        }, scanDuration * 1000);
+      });
+
+      const deviceList = Array.from(devices.values());
+      console.log(`✅ Scan complete. Found ${deviceList.length} device(s)`);
+      return deviceList;
+    } catch (error) {
+      console.error('❌ Error scanning for devices:', error);
+      this.scanning = false;
+      this.manager.stopDeviceScan();
+      throw error;
+    }
   }
 
   /**
    * Connect to ESP32 device
    */
   async connect(deviceId: string): Promise<boolean> {
-    // TODO: Implement device connection
-    // 1. Connect to device
-    // 2. Discover services
-    // 3. Subscribe to sensor data characteristic
-    // 4. Set up listener for data updates
-    console.log(`Connecting to device ${deviceId} (placeholder)`);
-    
-    // Placeholder
-    this.connectedDevice = {
-      id: deviceId,
-      name: 'Sentry Device',
-      rssi: 0,
-      connected: true,
-    };
-    
-    return true;
+    try {
+      console.log(`🔌 Connecting to device: ${deviceId}`);
+      
+      // Connect to device
+      const device = await this.manager.connectToDevice(deviceId);
+      
+      // Discover all services and characteristics
+      const deviceWithServices = await device.discoverAllServicesAndCharacteristics();
+      
+      // Store device instance for disconnection
+      this.connectedDeviceInstance = deviceWithServices;
+      
+      // Find the service and characteristic
+      const serviceUUID = SENTRY_SERVICE_UUID.toLowerCase();
+      const characteristicUUID = SENSOR_DATA_CHARACTERISTIC_UUID.toLowerCase();
+      
+      // Get characteristics for the service
+      const characteristics = await deviceWithServices.characteristicsForService(serviceUUID);
+      
+      // Find the sensor data characteristic
+      const characteristic = characteristics.find(
+        (char) => char.uuid.toLowerCase() === characteristicUUID
+      );
+      
+      if (!characteristic) {
+        throw new Error(`Characteristic ${characteristicUUID} not found`);
+      }
+
+      // Set up monitoring for characteristic updates
+      this.monitorSubscription = characteristic.monitor((error: any, char: Characteristic | null) => {
+        if (error) {
+          console.error('❌ Error monitoring characteristic:', error);
+          return;
+        }
+
+        if (!char || !char.value) {
+          return;
+        }
+
+        try {
+          // Parse base64 value to sensor data
+          const sensorData = this.parseSensorData(char.value, deviceId);
+          this.onDataReceived?.(sensorData);
+        } catch (error) {
+          console.error('❌ Error parsing sensor data:', error);
+        }
+      });
+
+      // Set up connection state monitoring
+      this.subscription = deviceWithServices.onDisconnected((error: any, device: Device) => {
+        if (error) {
+          console.error('❌ Device disconnected with error:', error);
+        } else {
+          console.log('🔌 Device disconnected:', device?.id);
+        }
+        this.connectedDevice = null;
+        this.connectedDeviceInstance = null;
+        if (this.monitorSubscription) {
+          this.monitorSubscription.remove();
+          this.monitorSubscription = null;
+        }
+      });
+
+      // Get device info
+      const deviceInfo = await deviceWithServices.services();
+      const name = device.name || 'Sentry Device';
+      
+      this.connectedDevice = {
+        id: deviceId,
+        name,
+        rssi: device.rssi || 0,
+        connected: true,
+      };
+
+      console.log(`✅ Connected to device: ${this.connectedDevice.name}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Error connecting to device ${deviceId}:`, error);
+      this.connectedDevice = null;
+      this.connectedDeviceInstance = null;
+      this.cleanup();
+      return false;
+    }
   }
 
   /**
    * Disconnect from device
    */
   async disconnect(): Promise<void> {
-    // TODO: Implement disconnection
-    // Remove listeners, disconnect device
-    console.log('Disconnecting from device (placeholder)');
-    this.connectedDevice = null;
+    if (!this.connectedDevice) {
+      return;
+    }
+
+    try {
+      const deviceId = this.connectedDevice.id;
+      console.log(`🔌 Disconnecting from device: ${deviceId}`);
+
+      // Cancel monitoring
+      if (this.monitorSubscription) {
+        this.monitorSubscription.remove();
+        this.monitorSubscription = null;
+      }
+
+      // Remove connection state listener
+      if (this.subscription) {
+        this.subscription.remove();
+        this.subscription = null;
+      }
+
+      // Cancel connection
+      try {
+        if (this.connectedDeviceInstance) {
+          await this.connectedDeviceInstance.cancelConnection();
+        }
+      } catch (error) {
+        // Device might already be disconnected
+        console.warn('Warning during disconnect:', error);
+      }
+      
+      this.connectedDeviceInstance = null;
+      
+      this.connectedDevice = null;
+      console.log('✅ Disconnected from device');
+    } catch (error) {
+      console.error('❌ Error disconnecting from device:', error);
+      this.connectedDevice = null;
+      this.connectedDeviceInstance = null;
+      this.cleanup();
+    }
   }
 
   /**
@@ -84,33 +297,47 @@ export class BLEManager {
 
   /**
    * Parse BLE data to SensorReading format
-   * ESP32 sends data as: {ax, ay, az, roll, pitch, tilt_detected, timestamp}
+   * ESP32 sends data as JSON: {ax, ay, az, roll, pitch, tilt_detected, timestamp}
+   * react-native-ble-plx returns base64 encoded strings
    */
-  private parseSensorData(value: number[] | string): SensorReading {
+  private parseSensorData(base64Value: string, deviceId: string): SensorReading {
     try {
-      let data: any;
+      // react-native-ble-plx returns base64 encoded strings
+      // We need to decode it to get the actual JSON string
+      let dataString: string;
       
-      if (typeof value === 'string') {
-        data = JSON.parse(value);
+      // Check if it's already a JSON string (might be if library auto-decodes)
+      if (base64Value.startsWith('{')) {
+        dataString = base64Value;
       } else {
-        // Convert byte array to string, then parse
-        const dataString = String.fromCharCode(...value);
-        data = JSON.parse(dataString);
+        // Decode from base64 using Buffer
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const Buffer = require('buffer').Buffer;
+        dataString = Buffer.from(base64Value, 'base64').toString('utf8');
+      }
+
+      // Parse JSON
+      const data = JSON.parse(dataString);
+
+      // Validate required fields
+      if (typeof data !== 'object' || data === null) {
+        throw new Error('Data is not an object');
       }
 
       return {
-        device_id: this.connectedDevice?.id || 'unknown',
-        ax: data.ax ?? 0,
-        ay: data.ay ?? 0,
-        az: data.az ?? 0,
-        roll: data.roll ?? 0,
-        pitch: data.pitch ?? 0,
-        tilt_detected: data.tilt_detected || false,
-        timestamp: new Date().toISOString(),
+        device_id: deviceId,
+        ax: typeof data.ax === 'number' ? data.ax : 0,
+        ay: typeof data.ay === 'number' ? data.ay : 0,
+        az: typeof data.az === 'number' ? data.az : 0,
+        roll: typeof data.roll === 'number' ? data.roll : 0,
+        pitch: typeof data.pitch === 'number' ? data.pitch : 0,
+        tilt_detected: typeof data.tilt_detected === 'boolean' ? data.tilt_detected : false,
+        timestamp: data.timestamp || new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Error parsing sensor data:', error);
-      throw new Error('Invalid sensor data format');
+      console.error('❌ Error parsing sensor data:', error);
+      console.error('Raw value:', base64Value);
+      throw new Error(`Invalid sensor data format: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -127,5 +354,36 @@ export class BLEManager {
   getConnectedDevice(): BLEDevice | null {
     return this.connectedDevice;
   }
-}
 
+  /**
+   * Cleanup resources
+   */
+  cleanup(): void {
+    if (this.stopScanTimeout) {
+      clearTimeout(this.stopScanTimeout);
+      this.stopScanTimeout = null;
+    }
+    
+    if (this.subscription) {
+      this.subscription.remove();
+      this.subscription = null;
+    }
+    
+    if (this.monitorSubscription) {
+      this.monitorSubscription.remove();
+      this.monitorSubscription = null;
+    }
+    
+    this.manager.stopDeviceScan();
+    this.scanning = false;
+    this.onDataReceived = undefined;
+  }
+
+  /**
+   * Destroy the BLE manager instance
+   */
+  destroy(): void {
+    this.cleanup();
+    this.manager.destroy();
+  }
+}

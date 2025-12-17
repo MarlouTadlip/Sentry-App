@@ -10,6 +10,8 @@ import {
   Bluetooth,
   Bell,
   BellOff,
+  Search,
+  Loader,
 } from "@tamagui/lucide-icons";
 import React, { useState, useEffect } from "react";
 import {
@@ -42,7 +44,16 @@ const home = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Crash detection setup
-  const { currentReading, isConnected } = useDevice();
+  const { 
+    currentReading, 
+    isConnected, 
+    isScanning,
+    scanForDevices,
+    connect,
+    disconnect,
+  } = useDevice();
+  const [foundDevices, setFoundDevices] = useState<Array<{ id: string; name: string; rssi: number }>>([]);
+  const [isConnecting, setIsConnecting] = useState(false);
   const { setLastCrashAlert } = useCrash();
   const { lastResult, isProcessing } = useCrashDetection(currentReading, {
     enabled: isConnected,
@@ -116,6 +127,58 @@ const home = () => {
       toast.showError("Refresh Failed", errorMessage);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleScanForDevices = async () => {
+    try {
+      toast.showInfo("Scanning", "Searching for Sentry devices...");
+      const devices = await scanForDevices(5);
+      setFoundDevices(devices);
+      if (devices.length === 0) {
+        // Check if BLE is available - if not, show helpful message
+        if (!isScanning) {
+          toast.showWarning(
+            "BLE Not Available", 
+            "Bluetooth requires a development build. Use: npx expo run:android (once, then use 'expo start' normally)"
+          );
+        } else {
+          toast.showWarning("No Devices Found", "Make sure your Sentry device is powered on and nearby");
+        }
+      } else {
+        toast.showSuccess("Scan Complete", `Found ${devices.length} device(s)`);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to scan for devices";
+      toast.showError("Scan Failed", errorMessage);
+    }
+  };
+
+  const handleConnect = async (deviceId: string, deviceName: string) => {
+    setIsConnecting(true);
+    try {
+      const connected = await connect(deviceId);
+      if (connected) {
+        toast.showSuccess("Connected", `Successfully connected to ${deviceName}`);
+        setFoundDevices([]); // Clear the list after connection
+      } else {
+        toast.showError("Connection Failed", "Failed to connect to device. Please try again.");
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to connect to device";
+      toast.showError("Connection Failed", errorMessage);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+      toast.showSuccess("Disconnected", "Device disconnected successfully");
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to disconnect from device";
+      toast.showError("Disconnect Failed", errorMessage);
     }
   };
   
@@ -243,33 +306,95 @@ const home = () => {
             </Text>
           </XStack>
 
-          <Button
-            variant={isConnected ? "outlined" : undefined}
-            backgroundColor={isConnected ? "transparent" : colors.primary}
-            borderColor={isConnected ? colors.red : undefined}
-            borderWidth={isConnected ? 1 : 0}
-            onPress={() => {
-              // TODO: Implement Bluetooth connect/disconnect
-              toast.showInfo(
-                "Bluetooth",
-                isConnected 
-                  ? "Feature coming soon: Will disconnect from device"
-                  : "Feature coming soon: Will scan and connect to device"
-              );
-            }}
-          >
-            <XStack gap={"$2"} alignItems="center">
-              <Bluetooth size={16} color={isConnected ? colors.red : "#ffffff"} />
-              <Text color={isConnected ? colors.red : "#ffffff"} fontWeight="semibold">
-                {isConnected ? "Disconnect Device" : "Connect Device"}
-              </Text>
-            </XStack>
-          </Button>
+          {!isConnected ? (
+            <>
+              <Button
+                backgroundColor={colors.primary}
+                onPress={handleScanForDevices}
+                disabled={isScanning}
+                opacity={isScanning ? 0.6 : 1}
+              >
+                <XStack gap={"$2"} alignItems="center">
+                  {isScanning ? (
+                    <Loader size={16} color="#ffffff" />
+                  ) : (
+                    <Search size={16} color="#ffffff" />
+                  )}
+                  <Text color="#ffffff" fontWeight="semibold">
+                    {isScanning ? "Scanning..." : "Scan for Devices"}
+                  </Text>
+                </XStack>
+              </Button>
 
-          {!isConnected && (
-            <Text color={colors.gray[200]} fontSize={"$3"} textAlign="center">
-              Connect to your Sentry device via Bluetooth to receive sensor data
-            </Text>
+              {foundDevices.length > 0 && (
+                <YStack gap={"$2"} marginTop={"$2"}>
+                  <Text color={colors.text} fontSize={"$4"} fontWeight="600" marginBottom={"$2"}>
+                    Found Devices:
+                  </Text>
+                  {foundDevices.map((device) => (
+                    <Button
+                      key={device.id}
+                      variant="outlined"
+                      borderColor={colors.border}
+                      borderWidth={1}
+                      backgroundColor={colors.cardBackground}
+                      onPress={() => handleConnect(device.id, device.name)}
+                      disabled={isConnecting}
+                      opacity={isConnecting ? 0.6 : 1}
+                    >
+                      <XStack gap={"$3"} alignItems="center" justifyContent="space-between" width="100%">
+                        <XStack gap={"$2"} alignItems="center" flex={1}>
+                          <Bluetooth size={16} color={colors.primary} />
+                          <YStack flex={1}>
+                            <Text color={colors.text} fontWeight="600" fontSize={"$4"}>
+                              {device.name}
+                            </Text>
+                            <Text color={colors.gray[200]} fontSize={"$2"}>
+                              RSSI: {device.rssi} dBm
+                            </Text>
+                          </YStack>
+                        </XStack>
+                        {isConnecting ? (
+                          <Loader size={16} color={colors.primary} />
+                        ) : (
+                          <Text color={colors.primary} fontWeight="semibold">
+                            Connect
+                          </Text>
+                        )}
+                      </XStack>
+                    </Button>
+                  ))}
+                </YStack>
+              )}
+
+              {!isScanning && foundDevices.length === 0 && (
+                <Text color={colors.gray[200]} fontSize={"$3"} textAlign="center">
+                  Tap "Scan for Devices" to find your Sentry device
+                </Text>
+              )}
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outlined"
+                backgroundColor="transparent"
+                borderColor={colors.red}
+                borderWidth={1}
+                onPress={handleDisconnect}
+                disabled={isConnecting}
+                opacity={isConnecting ? 0.6 : 1}
+              >
+                <XStack gap={"$2"} alignItems="center">
+                  <Bluetooth size={16} color={colors.red} />
+                  <Text color={colors.red} fontWeight="semibold">
+                    Disconnect Device
+                  </Text>
+                </XStack>
+              </Button>
+              <Text color={colors.green[500]} fontSize={"$3"} textAlign="center" fontWeight="600">
+                ✓ Connected to device. Receiving sensor data...
+              </Text>
+            </>
           )}
         </Card>
 

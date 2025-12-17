@@ -116,3 +116,22 @@ ERROR 2025-12-17 17:49:58 fcm_service Failed to send Expo push notification: {'d
 ERROR 2025-12-17 17:51:11 fcm_service Failed to send Expo push notification: {'data': {'status': 'ok', 'id': '019b2bb8-8587-7316-ae30-313cb9756b05'}}
 INFO 2025-12-17 17:53:43 fcm_service Expo push notification sent successfully for device V2038
 INFO 2025-12-17 17:53:43 fcm_controller Test notification sent successfully to user 1
+INFO 2025-12-17 18:45:44 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:45:54 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:46:05 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:47:25 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:47:32 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:47:54 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:47:59 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:48:09 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:48:13 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:48:18 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:48:27 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:49:22 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:50:12 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:50:40 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:51:28 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:52:46 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:52:53 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:53:01 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-17 18:53:54 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)

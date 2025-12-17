@@ -1,8 +1,14 @@
-# Welcome to your Expo app 👋
+# Sentry Safety Helmet App 👷‍♂️
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is an Expo React Native app for the Sentry Safety Helmet project, created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## ⚠️ Important: Bluetooth Support
+
+This app uses Bluetooth Low Energy (BLE) which requires a **development build** (not Expo Go).
+
+**👉 See [BLE_SETUP_GUIDE.md](./BLE_SETUP_GUIDE.md) for complete setup instructions.**
+
+## Quick Start
 
 1. Install dependencies
 
@@ -10,20 +16,40 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Build the app (required for BLE support)
 
+   **Option A: Local Build**
    ```bash
-   npx expo start
+   npm run build:android:clean
    ```
 
-In the output, you'll find options to open the app in a
+   **Option B: EAS Build (cloud)**
+   ```bash
+   npm install -g eas-cli
+   eas login
+   eas build:configure
+   npm run eas:build:dev
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+3. Start development server (after first build)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   ```bash
+   npm start
+   ```
+
+   Press `a` for Android or scan the QR code with your device.
+
+## Available Scripts
+
+- `npm start` - Start Metro bundler (normal development)
+- `npm run build:android` - Build and install Android app locally
+- `npm run build:android:clean` - Clean build (recommended for first build)
+- `npm run eas:build:dev` - Create development build via EAS (cloud)
+- `npm run eas:build:prod` - Create production build via EAS
+- `npm run prebuild` - Generate native Android/iOS folders
+- `npm run prebuild:clean` - Clean and regenerate native folders
+
+For more details, see [BLE_SETUP_GUIDE.md](./BLE_SETUP_GUIDE.md).
 
 ## Get a fresh project
 

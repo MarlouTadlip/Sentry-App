@@ -174,6 +174,11 @@
 
 ### Backend Setup
 
+#### Dependencies
+- [x] Add `httpx` dependency (✅ Added to `pyproject.toml`)
+  - [x] Used for Expo Push Notification API HTTP requests
+  - [x] Version: `httpx>=0.27.0,<1.0.0`
+
 #### Models
 - [ ] Create `device/models/sensor_data.py` (if not exists)
   - [ ] `SensorData` model for storing sensor readings
@@ -197,6 +202,11 @@
   - [ ] `CrashAlertRequest` schema
   - [ ] `CrashAlertResponse` schema
   - [ ] Field validators
+- [x] Create `device/schemas/fcm_schema.py` (✅ Implemented)
+  - [x] `FCMTokenRequest` schema - For token registration
+  - [x] `FCMTokenResponse` schema - Token registration response
+  - [x] `TestNotificationRequest` schema - For test notifications
+  - [x] `TestNotificationResponse` schema - Test notification response
 - [ ] Create `device/schemas/device_schema.py` (if needed)
   - [ ] Device token registration schema
 
@@ -208,8 +218,11 @@
   - [ ] Transaction management for multi-step operations
 - [ ] Create `device/controllers/device_controller.py` (if not exists)
   - [ ] Device data reception endpoint
-- [ ] Create `device/controllers/fcm_controller.py` (optional)
-  - [ ] FCM token registration endpoint
+- [x] Create `device/controllers/fcm_controller.py` (✅ Implemented)
+  - [x] `register_fcm_token()` function - Register Expo Push Token
+  - [x] `send_test_notification()` function - Send test push notification
+  - [x] Error handling with proper HTTP errors
+  - [x] Uses JWT authentication (via mobile router)
 
 #### Services
 - [ ] Create `device/services/crash_detector.py` (or use utils)
@@ -223,12 +236,15 @@
   - [ ] Prompt engineering for crash detection
   - [ ] JSON response parsing
   - [ ] Error handling and retry logic
-- [ ] Create `device/services/fcm_service.py`
-  - [ ] `FCMService` class
-  - [ ] Firebase Admin SDK initialization
-  - [ ] `send_crash_notification()` method
-  - [ ] `_get_fcm_token()` method (implement device token retrieval)
-  - [ ] Error handling and logging
+- [x] Create `device/services/fcm_service.py` (✅ Implemented - using Expo Push API)
+  - [x] `FCMService` class
+  - [x] Expo Push Notification API implementation (using `httpx`)
+  - [x] `send_crash_notification()` method
+  - [x] `send_test_notification()` method
+  - [x] `_get_expo_push_token()` method (retrieves Expo Push Token from DeviceToken model)
+  - [x] `_send_expo_notification()` method (handles Expo API response parsing)
+  - [x] Error handling and logging
+  - [x] Support for nested response format: `{"data": {"status": "ok"}}`
 
 #### Routers
 - [ ] Create `device/router/crash_router.py`
@@ -238,6 +254,10 @@
 - [ ] Update `device/router/device_router.py`
   - [ ] Register `crash_router` in device router
 - [ ] Verify router registration in `api/v1/router.py`
+- [x] Mobile router endpoints (✅ Implemented for push notifications)
+  - [x] `POST /api/v1/device/mobile/fcm/token` - Register Expo Push Token
+  - [x] `POST /api/v1/device/mobile/fcm/test` - Send test push notification
+  - [x] Both use JWT authentication (require logged-in user)
 
 #### Utilities
 - [ ] Create `device/utils/crash_utils.py` (if complex logic needed)
@@ -248,12 +268,13 @@
   - [ ] `gemini_api_key` field
   - [ ] `gemini_model` field
   - [ ] `gemini_analysis_lookback_seconds` field
-- [ ] Add FCM settings to `sentry/settings/config.py`
-  - [ ] `fcm_credentials_path` field
-- [ ] Add crash detection settings
-  - [ ] `crash_confidence_threshold` field
-  - [ ] `crash_high_severity_g_force` field
-  - [ ] `crash_medium_severity_g_force` field
+- [x] Add Push Notification settings to `sentry/settings/config.py` (✅ Implemented)
+  - [x] `expo_push_api_url` field (default: "https://exp.host/--/api/v2/push/send")
+  - [x] `fcm_credentials_path` field (deprecated - kept for backward compatibility)
+- [x] Add crash detection settings (✅ Implemented)
+  - [x] `crash_confidence_threshold` field
+  - [x] `crash_high_severity_g_force` field
+  - [x] `crash_medium_severity_g_force` field
 
 ### ESP32 Device Configuration
 
@@ -307,19 +328,26 @@
   - [ ] Update UI based on AI analysis
   - [ ] Show AI reasoning and confidence
 
-#### Firebase Cloud Messaging (FCM)
-- [ ] Choose approach (Expo Push Notifications OR Firebase Messaging)
-- [ ] Create `services/fcm/messaging.ts`
-  - [ ] `registerForPushNotifications()` function
-  - [ ] `saveFCMToken()` function (send to backend)
-  - [ ] `getDeviceId()` function (implement device ID retrieval)
-  - [ ] `setupNotificationListeners()` function
-  - [ ] Handle foreground/background notifications
-- [ ] Create `hooks/useFCM.ts`
-  - [ ] FCM token management hook
-  - [ ] Notification handling hook
-- [ ] Register FCM token on app startup
-- [ ] Handle notification tap actions
+#### Push Notifications (Expo Push Notification Service)
+- [x] Choose approach (✅ Expo Push Notifications - chosen)
+- [x] Create `services/notifications/notificationService.ts` (✅ Implemented)
+  - [x] `NotificationService` class
+  - [x] `requestPermissions()` function
+  - [x] `getPushToken()` function (gets Expo Push Token)
+  - [x] `sendLocalNotification()` function (for testing)
+  - [x] `startPeriodicNotifications()` function (for testing)
+  - [x] `stopPeriodicNotifications()` function (for testing)
+  - [x] `setupNotificationListeners()` function
+  - [x] Handle foreground/background notifications
+  - [x] Error handling for missing FCM configuration (Android)
+- [x] Create `hooks/useFCM.ts` (✅ Implemented)
+  - [x] FCM token management hook
+  - [x] Token registration with backend (`/mobile/fcm/token`)
+  - [x] Notification handling hook
+  - [x] Test notification functions (local and backend)
+  - [x] Periodic notification testing support
+- [x] Register FCM token on app startup (✅ Implemented in useFCM hook)
+- [x] Handle notification tap actions (✅ Implemented in notification listeners)
 
 #### Update UI Components
 - [ ] Update `components/crash/CrashAlert.tsx`
@@ -337,16 +365,19 @@
   - [x] `CrashAlertResponse` interface
   - [x] API response types
 
-### Firebase & FCM Setup
+### Expo Push Notifications Setup
 
-- [ ] Create Firebase project
-- [ ] Enable Cloud Messaging (FCM)
-- [ ] Generate service account JSON
-- [ ] Download and secure service account file
-- [ ] Configure FCM credentials path in backend settings
-- [ ] Setup Expo Push Notifications (if using Expo)
-  - [ ] Configure `app.json` with Expo project ID
-  - [ ] Test push notification delivery
+- [x] Setup Expo Push Notifications (✅ Chosen approach)
+  - [x] Configure `app.json` with Expo project ID
+  - [x] Install `expo-notifications` package
+  - [x] Implement notification service using Expo Push Notification Service
+  - [x] Configure backend to use Expo Push API (using `httpx`)
+  - [x] Add `expo_push_api_url` to backend config
+  - [x] Test push notification delivery (✅ Test endpoint implemented)
+- [ ] Configure FCM credentials for Android (optional - only if using EAS Build or manual setup)
+  - [ ] Use EAS Build (recommended - handles FCM automatically): `npx eas build --platform android`
+  - [ ] Or configure FCM credentials manually: https://docs.expo.dev/push-notifications/fcm-credentials/
+  - [ ] Note: Local notifications work without FCM configuration, but push notifications require it
 
 ### Integration (Phase 2)
 
@@ -1631,119 +1662,30 @@ Send push notifications to mobile app users when crashes are detected and confir
 #### 1. Install Dependencies
 
 ```bash
-pip install firebase-admin>=6.0.0
+pip install httpx>=0.27.0
 ```
 
-#### 2. FCM Service
+#### 2. FCM Service (Using Expo Push Notification API)
 
 **File**: `backend/sentry/device/services/fcm_service.py`
 
-```python
-import logging
+**Note**: The implementation uses Expo Push Notification Service API instead of Firebase Admin SDK directly. This approach:
+- Works with Expo Push Tokens (returned by `expo-notifications` library)
+- No need for Firebase Admin SDK or service account credentials
+- Simpler setup for Expo-based apps
+- Uses `httpx` library to make HTTP POST requests to Expo's API
 
-from django.conf import settings
-from firebase_admin import credentials, messaging
-import firebase_admin
+Key implementation details:
+- `send_crash_notification()`: Sends crash notification via Expo Push API
+- `send_test_notification()`: Sends test notification for testing purposes
+- `_get_expo_push_token()`: Retrieves Expo Push Token from `DeviceToken` model
+- `_send_expo_notification()`: Handles HTTP POST to Expo API with proper response parsing
+- Supports nested response format: `{"data": {"status": "ok", "id": "..."}}`
+- Error handling with proper logging
 
-from device.models.crash_event import CrashEvent
-
-logger = logging.getLogger(__name__)
-
-class FCMService:
-    """Firebase Cloud Messaging service for push notifications."""
-    
-    def __init__(self):
-        if not firebase_admin._apps:
-            # Initialize Firebase Admin SDK
-            cred_path = getattr(settings, 'FCM_CREDENTIALS_PATH', None)
-            if cred_path:
-                cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
-            else:
-                # Use default credentials (for production)
-                firebase_admin.initialize_app()
-    
-    def send_crash_notification(
-        self,
-        device_id: str,
-        crash_event: CrashEvent,
-        ai_analysis: dict,
-    ) -> bool:
-        """Send crash notification to user's mobile device.
-        
-        Args:
-            device_id: Device identifier
-            crash_event: CrashEvent model instance
-            ai_analysis: AI analysis results from Gemini
-            
-        Returns:
-            True if notification sent successfully, False otherwise
-        """
-        try:
-            # Get FCM token for device/user
-            # TODO: Implement device token storage/retrieval
-            fcm_token = self._get_fcm_token(device_id)
-            if not fcm_token:
-                logger.warning(f"No FCM token found for device {device_id}")
-                return False
-            
-            # Build notification message
-            message = messaging.Message(
-                notification=messaging.Notification(
-                    title="🚨 Crash Detected",
-                    body=f"Severity: {ai_analysis['severity'].upper()} | {ai_analysis['reasoning'][:100]}",
-                ),
-                data={
-                    'type': 'crash_detected',
-                    'crash_event_id': str(crash_event.id),
-                    'severity': ai_analysis['severity'],
-                    'confidence': str(ai_analysis['confidence']),
-                    'crash_type': ai_analysis['crash_type'],
-                    'timestamp': crash_event.crash_timestamp.isoformat(),
-                },
-                token=fcm_token,
-                android=messaging.AndroidConfig(
-                    priority='high',
-                    notification=messaging.AndroidNotification(
-                        channel_id='crash_alerts',
-                        sound='default',
-                        priority='max',
-                    ),
-                ),
-                apns=messaging.APNSConfig(
-                    payload=messaging.APNSPayload(
-                        aps=messaging.Aps(
-                            sound='default',
-                            badge=1,
-                            content_available=True,
-                        ),
-                    ),
-                ),
-            )
-            
-            # Send notification
-            response = messaging.send(message)
-            logger.info(f"FCM notification sent: {response}")
-            
-            # Update crash event
-            crash_event.alert_sent = True
-            crash_event.save(update_fields=['alert_sent'])
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error sending FCM notification: {e}", exc_info=True)
-            return False
-    
-    def _get_fcm_token(self, device_id: str) -> str | None:
-        """Get FCM token for device.
-        
-        TODO: Implement device token storage model.
-        For now, return None (placeholder).
-        """
-        # Example: DeviceToken.objects.get(device_id=device_id).fcm_token
-        return None
-```
+**Dependencies**:
+- `httpx` library for HTTP requests
+- `DeviceToken` model (stores Expo Push Tokens in `fcm_token` field)
 
 #### 3. Configuration
 
@@ -1751,11 +1693,19 @@ class FCMService:
 
 Add to the `Settings` class:
 ```python
+# Push notification settings (Expo)
+expo_push_api_url: str = Field(
+    default="https://exp.host/--/api/v2/push/send",
+    description="Expo Push Notification API endpoint URL",
+)
+# FCM settings (deprecated - using Expo Push API now)
 fcm_credentials_path: str | None = Field(
     default=None,
-    description="Path to Firebase service account JSON file",
+    description="Path to Firebase service account JSON file (deprecated - not used with Expo Push API)",
 )
 ```
+
+**Note**: `fcm_credentials_path` is kept for backward compatibility but is not used with Expo Push API implementation.
 
 ### Frontend Setup
 
@@ -1763,183 +1713,76 @@ fcm_credentials_path: str | None = Field(
 
 ```bash
 cd frontend
-npx expo install expo-notifications
-npm install @react-native-firebase/app @react-native-firebase/messaging
+npx expo install expo-notifications expo-device expo-constants
 ```
 
-#### 2. FCM Service
+**Note**: No need for `@react-native-firebase/app` or `@react-native-firebase/messaging` when using Expo Push Notification Service.
 
-**File**: `frontend/services/fcm/messaging.ts`
+#### 2. Notification Service
 
-```typescript
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import { Platform } from 'react-native';
-import { apiClient } from '@/services/api/client';
+**File**: `frontend/services/notifications/notificationService.ts`
 
-// Configure notification handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+**Note**: This is implemented using `expo-notifications` library and Expo Push Notification Service.
 
-export interface FCMToken {
-  token: string;
-  device_id: string;
-}
+**Implementation Notes**:
+- Uses `expo-notifications` for Expo Push Token generation
+- Token is sent to backend endpoint: `/api/v1/device/mobile/fcm/token`
+- Backend uses Expo Push API to send notifications using the Expo Push Token
+- Handles both local notifications and push notifications
+- Supports periodic notifications for testing
+- Error handling for missing FCM configuration on Android
 
-/**
- * Register device for push notifications
- */
-export async function registerForPushNotifications(): Promise<string | null> {
-  if (!Device.isDevice) {
-    console.warn('Must use physical device for Push Notifications');
-    return null;
-  }
+**Key Methods**:
+- `getPushToken()`: Gets Expo Push Token (format: `ExponentPushToken[...]`)
+- `sendLocalNotification()`: Sends immediate local notification
+- `startPeriodicNotifications()`: Starts periodic test notifications
+- `setupNotificationListeners()`: Sets up foreground/background notification handlers
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+#### 3. useFCM Hook
 
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
+**File**: `frontend/hooks/useFCM.ts`
 
-  if (finalStatus !== 'granted') {
-    console.warn('Failed to get push token for push notification!');
-    return null;
-  }
+**Implementation Notes**:
+- Automatically registers for push notifications on mount
+- Sends Expo Push Token to backend on registration
+- Provides test notification functions (local and backend)
+- Manages notification state (token, registration status, periodic notifications)
+- Handles notification listeners setup and cleanup
 
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: 'your-expo-project-id', // Get from app.json or env
-  });
+#### 4. Backend Test Notification Endpoint
 
-  const token = tokenData.data;
-  
-  // Send token to backend
-  await saveFCMToken(token);
+**File**: `backend/sentry/device/router/mobile_router.py`
 
-  return token;
-}
+**Endpoints**:
+- `POST /api/v1/device/mobile/fcm/token` - Register Expo Push Token
+- `POST /api/v1/device/mobile/fcm/test` - Send test push notification
 
-/**
- * Save FCM token to backend
- */
-async function saveFCMToken(token: string): Promise<void> {
-  try {
-    await apiClient.post('/api/v1/device/fcm/token', {
-      token,
-      device_id: await getDeviceId(),
-      platform: Platform.OS,
-    });
-  } catch (error) {
-    console.error('Error saving FCM token:', error);
-  }
-}
+**Note**: Both endpoints require JWT authentication.
 
-/**
- * Get device ID (implement based on your device identification logic)
- */
-async function getDeviceId(): Promise<string> {
-  // TODO: Implement device ID retrieval
-  // Could use expo-device, or store in AsyncStorage
-  return 'device-id-placeholder';
-}
-
-/**
- * Setup notification listeners
- */
-export function setupNotificationListeners(
-  onNotificationReceived: (notification: Notifications.Notification) => void
-): () => void {
-  // Foreground notifications
-  const foregroundSubscription = Notifications.addNotificationReceivedListener(
-    onNotificationReceived
-  );
-
-  // Background/quit state notifications
-  const responseSubscription = Notifications.addNotificationResponseReceivedListener(
-    (response) => {
-      const data = response.notification.request.content.data;
-      if (data?.type === 'crash_detected') {
-        // Navigate to crash details screen
-        // navigation.navigate('CrashDetails', { crashEventId: data.crash_event_id });
-      }
-    }
-  );
-
-  // Cleanup function
-  return () => {
-    foregroundSubscription.remove();
-    responseSubscription.remove();
-  };
-}
-```
-
-#### 3. Notification Component
+#### 5. Notification Component
 
 > **Note**: This is Phase 2 implementation. In Phase 1, use `console.log()` instead of notifications.
 
-**File**: `frontend/services/fcm/notifications.ts` (Phase 2)
+**Note**: Local notification functionality is implemented in `notificationService.ts` via `sendLocalNotification()` method. The `useFCM` hook provides convenient wrapper functions for testing.
 
+#### 6. App Initialization
+
+**File**: `frontend/app/(tabs)/home.tsx` (update)
+
+**Note**: Push notification registration happens automatically in the `useFCM` hook when components mount. The hook:
+- Registers for push notifications
+- Sends token to backend
+- Sets up notification listeners
+- Provides test notification functions
+
+Example usage:
 ```typescript
-import * as Notifications from 'expo-notifications';
-
-export interface NotificationOptions {
-  title: string;
-  body: string;
-  data?: Record<string, any>;
-  sound?: boolean;
-}
-
-/**
- * Show local notification
- * 
- * Phase 1: Use console.log() instead
- * Phase 2: Implement this function for notifications
- */
-export async function showLocalNotification(
-  options: NotificationOptions
-): Promise<void> {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: options.title,
-      body: options.body,
-      data: options.data,
-      sound: options.sound ?? true,
-    },
-    trigger: null, // Show immediately
-  });
-}
-```
-
-#### 4. App Initialization
-
-**File**: `frontend/app/_layout.tsx` (update)
-
-```typescript
-import { useEffect } from 'react';
-import { registerForPushNotifications, setupNotificationListeners } from '@/services/fcm/messaging';
-
-export default function RootLayout() {
-  useEffect(() => {
-    // Register for push notifications on app start
-    registerForPushNotifications();
-
-    // Setup notification listeners
-    const cleanup = setupNotificationListeners((notification) => {
-      console.log('Notification received:', notification);
-      // Handle notification
-    });
-
-    return cleanup;
-  }, []);
-
-  // ... rest of layout
-}
+const { 
+  pushToken, 
+  isRegistered, 
+  sendTestNotification,
+  sendBackendTestNotification,
+} = useFCM();
 ```
 
 ---
