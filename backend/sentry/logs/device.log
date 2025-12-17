@@ -135,3 +135,8 @@ INFO 2025-12-17 18:52:46 fcm_controller FCM token updated for device V2038 (plat
 INFO 2025-12-17 18:52:53 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
 INFO 2025-12-17 18:53:01 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
 INFO 2025-12-17 18:53:54 fcm_controller FCM token updated for device V2038 (platform: android, user: 1)
+INFO 2025-12-18 00:13:21 fcm_controller FCM token registered for device 220333QAG (platform: android, user: 5)
+INFO 2025-12-18 00:16:12 fcm_controller FCM token updated for device 220333QAG (platform: android, user: 5)
+INFO 2025-12-18 00:21:31 fcm_controller FCM token updated for device 220333QAG (platform: android, user: 5)
+INFO 2025-12-18 00:23:59 fcm_controller FCM token updated for device 220333QAG (platform: android, user: 8)
+INFO 2025-12-18 01:25:20 fcm_controller FCM token updated for device 220333QAG (platform: android, user: 5)
