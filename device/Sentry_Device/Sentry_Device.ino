@@ -73,22 +73,23 @@ void loop() {
       const char* gpsStatusMsg = getGPSStatusMessage();
       int gpsStatus = getGPSStatus();
       
-      // Send real GPS data with status message
-      sendGPSData(gpsFix, satellites, latitude, longitude, altitude, gpsStatusMsg);
+      // Send real GPS data with status message and status code
+      sendGPSData(gpsFix, satellites, latitude, longitude, altitude, gpsStatusMsg, gpsStatus);
       
       // Display appropriate status message based on GPS state
       if (gpsStatus == 0) {
         // GPS device not working
-        Serial.println("BLE: GPS Status - ⚠️ GPS device not working - Check connections");
+        Serial.print("BLE: GPS Status [Code: 0] - ⚠️ GPS device not working - Check connections");
+        Serial.println();
       } else if (gpsStatus == 1) {
         // GPS no signal
-        Serial.print("BLE: GPS Status - ⚠️ No GPS signal detected - Move to open area");
+        Serial.print("BLE: GPS Status [Code: 1] - ⚠️ No GPS signal detected - Move to open area");
         Serial.print(" (Satellites: ");
         Serial.print(satellites);
         Serial.println(")");
       } else if (gpsStatus == 2) {
         // GPS working
-        Serial.print("BLE: GPS Status - ✓ GPS tracking active - Lat: ");
+        Serial.print("BLE: GPS Status [Code: 2] - ✓ GPS tracking active - Lat: ");
         Serial.print(latitude, 6);
         Serial.print(", Lng: ");
         Serial.print(longitude, 6);

@@ -175,13 +175,13 @@ const char* getGPSStatusMessage() {
     
     switch (status) {
         case 0:
-            return "GPS device not working - Check connections";
+            return "[Status: 0] GPS device not working - Check connections";
         case 1:
-            return "No GPS signal detected - Move to open area";
+            return "[Status: 1] No GPS signal detected - Move to open area";
         case 2:
-            return "GPS tracking active";
+            return "[Status: 2] GPS tracking active";
         default:
-            return "GPS status unknown";
+            return "[Status: ?] GPS status unknown";
     }
 }
 
