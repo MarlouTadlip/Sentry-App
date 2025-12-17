@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start --lan",
+    "start": "expo start --dev-client",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -50,6 +50,7 @@
     "react-native": "0.81.5",
     "react-native-ble-plx": "^3.1.1",
     "react-native-gesture-handler": "~2.28.0",
+    "react-native-maps": "1.20.1",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",

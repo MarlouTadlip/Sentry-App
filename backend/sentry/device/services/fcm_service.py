@@ -60,6 +60,17 @@ class FCMService:
             severity = ai_analysis.get("severity", "unknown").upper()
             reasoning = ai_analysis.get("reasoning", "Crash detected")[:100]
 
+            # Get GPS location if available
+            gps_location = None
+            map_link = None
+            if crash_event.crash_latitude and crash_event.crash_longitude:  # type: ignore[attr-defined]
+                gps_location = {
+                    "latitude": crash_event.crash_latitude,  # type: ignore[attr-defined]
+                    "longitude": crash_event.crash_longitude,  # type: ignore[attr-defined]
+                    "altitude": crash_event.crash_altitude,  # type: ignore[attr-defined]
+                }
+                map_link = f"https://www.google.com/maps?q={crash_event.crash_latitude},{crash_event.crash_longitude}"  # type: ignore[attr-defined]
+
             # Prepare notification payload for Expo Push API
             message = {
                 "to": expo_token,
@@ -73,6 +84,8 @@ class FCMService:
                     "confidence": str(ai_analysis.get("confidence", 0.0)),
                     "crash_type": ai_analysis.get("crash_type", "unknown"),
                     "timestamp": crash_event.crash_timestamp.isoformat(),  # type: ignore[attr-defined]
+                    "gps_location": gps_location,
+                    "map_link": map_link,
                 },
                 "priority": "high",  # High priority for crash notifications
                 "channelId": "crash_alerts",  # Android notification channel

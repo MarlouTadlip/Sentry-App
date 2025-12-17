@@ -1,12 +1,13 @@
 /** Device context for BLE connection state. */
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { SensorReading, BLEDevice } from '@/types/device';
+import { SensorReading, BLEDevice, GPSData } from '@/types/device';
 import { BLEManager } from '@/services/bluetooth/bleManager';
 
 interface DeviceContextType {
   isConnected: boolean;
   currentReading: SensorReading | null;
+  currentGPSData: GPSData | null;
   isScanning: boolean;
   scanForDevices: (duration?: number) => Promise<BLEDevice[]>;
   connect: (deviceId: string) => Promise<boolean>;
@@ -31,9 +32,12 @@ const DeviceContext = createContext<DeviceContextType | undefined>(undefined);
 export function DeviceProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [currentReading, setCurrentReading] = useState<SensorReading | null>(null);
+  const [currentGPSData, setCurrentGPSData] = useState<GPSData | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const bleManagerRef = useRef<BLEManager | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const readingCountRef = useRef(0);
+  const gpsCountRef = useRef(0);
 
   // Lazy initialize BLE manager after component mounts (allows native modules to be ready)
   useEffect(() => {
@@ -87,8 +91,38 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     
+    // Set sensor data callback
     bleManagerRef.current.setDataCallback((data: SensorReading) => {
+      readingCountRef.current += 1;
+      // Log every 5 readings to avoid console spam (every ~10 seconds)
+      if (readingCountRef.current % 5 === 0) {
+        console.log(`📥 DeviceContext: Received sensor data (reading #${readingCountRef.current})`, {
+          device_id: data.device_id,
+          ax: data.ax.toFixed(2),
+          ay: data.ay.toFixed(2),
+          az: data.az.toFixed(2),
+          roll: data.roll.toFixed(1),
+          pitch: data.pitch.toFixed(1),
+          tilt_detected: data.tilt_detected,
+        });
+      }
       setCurrentReading(data);
+    });
+
+    // Set GPS data callback
+    bleManagerRef.current.setGPSDataCallback((gpsData: GPSData) => {
+      gpsCountRef.current += 1;
+      // Log every 5 GPS readings to avoid console spam (every ~10 seconds)
+      if (gpsCountRef.current % 5 === 0) {
+        console.log(`📍 DeviceContext: Received GPS data (reading #${gpsCountRef.current})`, {
+          fix: gpsData.fix,
+          satellites: gpsData.satellites,
+          latitude: gpsData.latitude,
+          longitude: gpsData.longitude,
+          altitude: gpsData.altitude,
+        });
+      }
+      setCurrentGPSData(gpsData);
     });
   }, [isInitialized]);
 
@@ -96,6 +130,7 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
     if (!bleManagerRef.current || !isInitialized) return;
     
     bleManagerRef.current.setDataCallback(() => {});
+    bleManagerRef.current.setGPSDataCallback(() => {});
   }, [isInitialized]);
 
   const scanForDevices = useCallback(async (duration: number = 5): Promise<BLEDevice[]> => {
@@ -151,6 +186,7 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
       await bleManagerRef.current.disconnect();
       setIsConnected(false);
       setCurrentReading(null);
+      setCurrentGPSData(null);
     } catch (error) {
       console.error('❌ Error disconnecting from device:', error);
     }
@@ -195,6 +231,7 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
       value={{
         isConnected,
         currentReading,
+        currentGPSData,
         isScanning,
         scanForDevices,
         connect,

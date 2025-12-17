@@ -6,6 +6,9 @@ import { getStoredRefreshToken, getStoredToken, storeTokens, clearStoredTokens }
 const BASE_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 export const API_URL = `${BASE_API_URL}/api/v1`;
 
+// Device API key from environment
+const DEVICE_API_KEY = process.env.EXPO_PUBLIC_DEVICE_API_KEY;
+
 // Logout callback for handling refresh failures
 let logoutCallback: (() => void) | null = null;
 
@@ -29,15 +32,21 @@ const deviceApi = axios.create({
   },
 });
 
-// Request interceptor for deviceApi (adds JWT token for mobile endpoints)
+// Request interceptor for deviceApi (adds JWT token for mobile endpoints, API key for others)
 deviceApi.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    // Only add JWT token for mobile endpoints (which use JWT auth)
-    // Other endpoints like /data use API key auth
     if (config.url?.startsWith('/mobile/')) {
+      // Mobile endpoints use JWT authentication
       const token = await getStoredToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+    } else {
+      // Other device endpoints (like /crash/alert, /data) use API key authentication
+      if (DEVICE_API_KEY) {
+        config.headers['X-API-Key'] = DEVICE_API_KEY;
+      } else {
+        console.warn('⚠️ DEVICE_API_KEY not configured. Device API requests may fail.');
       }
     }
     return config;
