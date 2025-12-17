@@ -1,5 +1,423 @@
 # Two-Tier Crash Detection Approach
 
+## Implementation Checklist
+
+> **Status**: Phase 1 Partially Complete | **Last Updated**: 2025
+> 
+> This checklist tracks all implementation tasks for the two-tier crash detection system. The implementation is divided into two phases:
+> - **Phase 1**: Tier 1 - Client-Side Fast Threshold Detection (immediate alerts)
+> - **Phase 2**: Tier 2 - Backend AI Analysis (intelligent confirmation)
+> 
+> Complete Phase 1 first to get basic crash detection working, then implement Phase 2 for AI-powered confirmation.
+
+---
+
+## Phase 1: Tier 1 - Client-Side Threshold Detection
+
+> **Goal**: Implement fast, local crash detection that provides immediate alerts (<100ms) without backend dependency.
+
+### Frontend Setup
+
+#### Project Setup & Structure
+- [x] Create folder structure (`services`, `hooks`, `context`, `lib`, `types`, `utils`, `components`)
+- [x] Setup TypeScript path aliases (`@/` for root directory)
+
+#### React Context (Local State)
+- [x] Create `context/DeviceContext.tsx`
+  - [x] BLE connection state management
+  - [x] Current sensor reading state
+  - [x] Connect/disconnect functions
+  - [x] Start/stop receiving data functions
+- [x] Create `context/CrashContext.tsx`
+  - [x] Last crash alert state
+  - [x] Processing state
+  - [x] Setter functions
+
+#### Bluetooth Low Energy (BLE)
+- [x] Choose BLE library (Expo: `expo-bluetooth` OR Bare RN: `react-native-ble-manager`)
+- [x] Create `services/bluetooth/bleManager.ts` (⚠️ Placeholder - needs implementation)
+  - [x] BLE manager initialization (placeholder)
+  - [x] Device scanning functionality (placeholder)
+  - [x] Device connection/disconnection (placeholder)
+  - [x] Characteristic subscription (placeholder)
+  - [x] Listener cleanup (prevent memory leaks) (placeholder)
+  - [x] Sensor data parsing with error handling (placeholder)
+- [x] Create `services/bluetooth/deviceScanner.ts` (⚠️ Placeholder - needs implementation)
+  - [x] Device scanning logic (placeholder)
+  - [x] Device pairing/connection flow (placeholder)
+- [ ] Test BLE connection with ESP32 device
+- [ ] Handle BLE disconnection scenarios
+- [ ] Implement reconnection logic
+
+#### Crash Detection Logic
+- [x] Create `services/crash/threshold.ts`
+  - [x] `ThresholdDetector` class
+  - [x] Threshold configuration (G-force, tilt, consecutive triggers)
+  - [x] Consecutive trigger detection logic (fixed version)
+  - [x] Severity calculation
+  - [x] Trigger type determination
+- [x] Create `services/crash/calculator.ts`
+  - [x] `calculateGForce()` function (with proper unit conversion)
+  - [x] `calculateTilt()` function (roll and pitch)
+  - [x] `isTiltExceeded()` helper function
+
+#### Crash Detection Hook (Tier 1 Only)
+- [x] Create `hooks/useCrashDetection.ts`
+  - [x] Integrate `ThresholdDetector`
+  - [x] Process sensor data from BLE
+  - [x] Race condition protection (useRef for processing state)
+  - [x] **Console log** threshold exceeded events (no notifications yet)
+    - [x] Log threshold result details (severity, trigger type, G-force, tilt)
+    - [x] Log timestamp and sensor data
+  - [x] Store threshold alerts locally (in state/context)
+  - [x] Reset detector after processing
+  - [x] **Note**: Backend API calls and notifications will be added in Phase 2
+
+#### TypeScript Types
+- [x] Create `types/device.ts`
+  - [x] `SensorReading` interface
+  - [x] `BLEDevice` interface
+- [x] Create `types/crash.ts`
+  - [x] `ThresholdResult` interface
+  - [x] `ThresholdConfig` interface
+  - [x] `CrashEvent` interface (for future use)
+- [x] Create `types/api.ts` (Phase 2 types prepared)
+
+#### UI Components (Tier 1)
+- [x] Create `components/crash/CrashAlert.tsx`
+  - [x] Display crash alert UI
+  - [x] Show threshold detection results
+  - [x] Display severity and trigger type
+  - [x] **Note**: AI analysis results will be added in Phase 2 (structure ready)
+- [x] Create `components/crash/CrashIndicator.tsx`
+  - [x] Visual indicator for crash detection status
+  - [x] Show when threshold is exceeded
+- [x] Create `components/device/SensorDisplay.tsx`
+  - [x] Display real-time sensor data
+  - [x] Show BLE connection status
+  - [x] Display G-force and tilt values
+
+#### Integration (Tier 1)
+- [x] Integrate BLE data flow with crash detection hook (✅ Integrated - ready when BLE is implemented)
+- [x] Connect DeviceContext to BLE manager (✅ Connected in app layout)
+- [x] Connect CrashContext to crash detection (✅ Connected in app layout)
+- [x] Integrate with existing app navigation (✅ Added providers to app layout)
+- [x] Add crash detection to appropriate screens (✅ Integrated into home screen)
+- [ ] Test Tier 1 flow: BLE → Threshold → Console Log (⚠️ Requires BLE implementation)
+
+#### Utilities & Constants
+- [x] Create `utils/math.ts` (not needed - calculator.ts covers it)
+- [x] Create `utils/validation.ts` (data validation utilities) (✅ Implemented)
+- [x] Create `utils/constants.ts`
+  - [x] `CRASH_DETECTION_CONFIG` constants
+  - [x] BLE UUIDs (make configurable)
+  - [x] Threshold values
+
+### ESP32 Device Configuration (Phase 1)
+
+- [ ] Setup ESP32 development environment
+- [ ] Install MPU6050 library
+- [ ] Configure BLE
+  - [ ] Set BLE service UUID
+  - [ ] Set sensor data characteristic UUID
+  - [ ] Configure device name (e.g., "Sentry Device")
+- [ ] Implement sensor reading
+  - [ ] Read MPU6050 accelerometer data
+  - [ ] Calculate roll, pitch, tilt_detected
+  - [ ] Format data as JSON
+- [ ] Implement BLE transmission
+  - [ ] Send sensor data every 2 seconds
+  - [ ] Handle BLE connection/disconnection
+  - [ ] Error handling for sensor read failures
+- [ ] Test BLE communication with mobile app
+- [ ] Optimize battery usage
+
+### Phase 1 Testing
+
+- [ ] Unit tests for threshold detection logic
+- [ ] Unit tests for G-force and tilt calculations
+- [ ] Unit tests for consecutive trigger logic
+- [ ] Integration tests for BLE connection (requires physical device)
+- [ ] Integration tests for crash detection hook
+- [ ] Test Tier 1 end-to-end: BLE → Threshold → Console Log
+- [ ] Test with various sensor data scenarios
+- [ ] Test BLE disconnection handling
+- [ ] Verify console logs show threshold events correctly
+
+### Phase 1 Completion Criteria
+
+- [ ] ESP32 device sends sensor data via BLE every 2 seconds
+- [ ] Mobile app receives and parses BLE sensor data
+- [ ] Threshold detection works correctly (G-force and tilt)
+- [ ] Console logs show threshold exceeded events with details
+- [ ] UI displays crash alerts and sensor data
+- [ ] Basic error handling in place
+- [ ] Tier 1 testing completed
+- [ ] **Note**: Notifications will be implemented in Phase 2
+
+### Phase 2 Completion Criteria
+
+- [ ] Backend receives crash alerts from mobile app
+- [ ] Gemini AI analyzes crash data and provides confirmation
+- [ ] CrashEvent records created in database
+- [ ] FCM push notifications sent on confirmed crashes
+- [ ] Frontend displays AI analysis results
+- [ ] User feedback mechanism working
+- [ ] Complete end-to-end flow tested
+- [ ] False positive reduction verified
+
+---
+
+## Phase 2: Tier 2 - Backend AI Analysis
+
+> **Goal**: Add intelligent AI-powered crash confirmation to reduce false positives and provide detailed crash analysis.
+
+### Backend Setup
+
+#### Models
+- [ ] Create `device/models/sensor_data.py` (if not exists)
+  - [ ] `SensorData` model for storing sensor readings
+  - [ ] Timestamp indexing for efficient queries
+  - [ ] Device relationship
+  - [ ] Fields: device_id, ax, ay, az, roll, pitch, tilt_detected, timestamp
+- [ ] Create `device/models/crash_event.py`
+  - [ ] `CrashEvent` model with all required fields
+  - [ ] Database indexes for frequently queried fields
+  - [ ] Model Meta configuration
+  - [ ] Fields: device_id, user, crash_timestamp, is_confirmed_crash, confidence_score, severity, etc.
+- [ ] Create `device/models/device_token.py` (for FCM tokens)
+  - [ ] `DeviceToken` model
+  - [ ] User/device relationship
+  - [ ] Token refresh mechanism
+  - [ ] Platform field (iOS/Android)
+- [ ] Create and run migrations
+
+#### Schemas
+- [ ] Create `device/schemas/crash_schema.py`
+  - [ ] `CrashAlertRequest` schema
+  - [ ] `CrashAlertResponse` schema
+  - [ ] Field validators
+- [ ] Create `device/schemas/device_schema.py` (if needed)
+  - [ ] Device token registration schema
+
+#### Controllers
+- [ ] Create `device/controllers/crash_controller.py`
+  - [ ] `process_crash_alert()` function
+  - [ ] Follow backend guide conventions (import order, type hints, docstrings)
+  - [ ] Error handling with proper HTTP errors
+  - [ ] Transaction management for multi-step operations
+- [ ] Create `device/controllers/device_controller.py` (if not exists)
+  - [ ] Device data reception endpoint
+- [ ] Create `device/controllers/fcm_controller.py` (optional)
+  - [ ] FCM token registration endpoint
+
+#### Services
+- [ ] Create `device/services/crash_detector.py` (or use utils)
+  - [ ] `get_recent_sensor_data()` function
+  - [ ] Query last N seconds of sensor data from database
+  - [ ] Format data for AI analysis
+- [ ] Create `core/ai/gemini_service.py` (or in appropriate location)
+  - [ ] `GeminiService` class
+  - [ ] `format_sensor_data_for_ai()` method
+  - [ ] `analyze_crash_data()` method
+  - [ ] Prompt engineering for crash detection
+  - [ ] JSON response parsing
+  - [ ] Error handling and retry logic
+- [ ] Create `device/services/fcm_service.py`
+  - [ ] `FCMService` class
+  - [ ] Firebase Admin SDK initialization
+  - [ ] `send_crash_notification()` method
+  - [ ] `_get_fcm_token()` method (implement device token retrieval)
+  - [ ] Error handling and logging
+
+#### Routers
+- [ ] Create `device/router/crash_router.py`
+  - [ ] `crash_router` with proper auth (DeviceAPIKeyAuth)
+  - [ ] `/alert` endpoint
+  - [ ] Follow backend guide conventions
+- [ ] Update `device/router/device_router.py`
+  - [ ] Register `crash_router` in device router
+- [ ] Verify router registration in `api/v1/router.py`
+
+#### Utilities
+- [ ] Create `device/utils/crash_utils.py` (if complex logic needed)
+- [ ] Create `device/utils/sensor_data_utils.py` (if complex logic needed)
+
+#### Settings & Configuration
+- [ ] Add Gemini API settings to `sentry/settings/config.py`
+  - [ ] `gemini_api_key` field
+  - [ ] `gemini_model` field
+  - [ ] `gemini_analysis_lookback_seconds` field
+- [ ] Add FCM settings to `sentry/settings/config.py`
+  - [ ] `fcm_credentials_path` field
+- [ ] Add crash detection settings
+  - [ ] `crash_confidence_threshold` field
+  - [ ] `crash_high_severity_g_force` field
+  - [ ] `crash_medium_severity_g_force` field
+
+### ESP32 Device Configuration
+
+- [ ] Setup ESP32 development environment
+- [ ] Install MPU6050 library
+- [ ] Configure BLE
+  - [ ] Set BLE service UUID
+  - [ ] Set sensor data characteristic UUID
+  - [ ] Configure device name (e.g., "Sentry Device")
+- [ ] Implement sensor reading
+  - [ ] Read MPU6050 accelerometer data
+  - [ ] Calculate roll, pitch, tilt_detected
+  - [ ] Format data as JSON
+- [ ] Implement BLE transmission
+  - [ ] Send sensor data every 2 seconds
+  - [ ] Handle BLE connection/disconnection
+  - [ ] Error handling for sensor read failures
+- [ ] Test BLE communication with mobile app
+- [ ] Optimize battery usage
+
+### Frontend Updates (Phase 2)
+
+#### API Services
+- [ ] Create `services/api/client.ts`
+  - [ ] Axios instance setup
+  - [ ] Base URL configuration
+  - [ ] Request/response interceptors
+  - [ ] Error handling
+- [x] Create `services/api/crash.ts`
+  - [x] `sendCrashAlert()` function
+  - [x] Request/response type definitions
+  - [x] Error handling
+
+#### State Management (TanStack Query)
+- [x] Setup TanStack Query (if not done in Phase 1)
+  - [x] Install `@tanstack/react-query`
+  - [x] Create `lib/queryClient.ts` with proper configuration (gcTime, staleTime)
+  - [x] Setup `QueryClientProvider` in `app/_layout.tsx`
+- [x] Create mutation hooks in `hooks/mutations/`
+  - [x] `useSendCrashAlert.ts` - Mutation for sending crash alert to backend
+  - [x] Handle AI response
+  - [x] Update local state based on AI confirmation
+- [ ] Create query hooks in `hooks/queries/`
+  - [ ] `useCrashEvents.ts` - Query crash events from API
+  - [ ] `useCrashHistory.ts` - Query crash history with date filters
+
+#### Update Crash Detection Hook
+- [ ] Update `hooks/useCrashDetection.ts`
+  - [ ] Add mutation call to send alert to backend
+  - [ ] Handle AI confirmation response
+  - [ ] Update UI based on AI analysis
+  - [ ] Show AI reasoning and confidence
+
+#### Firebase Cloud Messaging (FCM)
+- [ ] Choose approach (Expo Push Notifications OR Firebase Messaging)
+- [ ] Create `services/fcm/messaging.ts`
+  - [ ] `registerForPushNotifications()` function
+  - [ ] `saveFCMToken()` function (send to backend)
+  - [ ] `getDeviceId()` function (implement device ID retrieval)
+  - [ ] `setupNotificationListeners()` function
+  - [ ] Handle foreground/background notifications
+- [ ] Create `hooks/useFCM.ts`
+  - [ ] FCM token management hook
+  - [ ] Notification handling hook
+- [ ] Register FCM token on app startup
+- [ ] Handle notification tap actions
+
+#### Update UI Components
+- [ ] Update `components/crash/CrashAlert.tsx`
+  - [ ] Display AI analysis results
+  - [ ] Show confidence score and reasoning
+  - [ ] Display key indicators
+  - [ ] Add user feedback buttons (true/false positive)
+- [ ] Create `components/crash/CrashHistory.tsx` (optional)
+  - [ ] Display crash event history
+  - [ ] Filter by date range
+
+#### TypeScript Types (Update)
+- [x] Update `types/api.ts`
+  - [x] `CrashAlertRequest` interface
+  - [x] `CrashAlertResponse` interface
+  - [x] API response types
+
+### Firebase & FCM Setup
+
+- [ ] Create Firebase project
+- [ ] Enable Cloud Messaging (FCM)
+- [ ] Generate service account JSON
+- [ ] Download and secure service account file
+- [ ] Configure FCM credentials path in backend settings
+- [ ] Setup Expo Push Notifications (if using Expo)
+  - [ ] Configure `app.json` with Expo project ID
+  - [ ] Test push notification delivery
+
+### Integration (Phase 2)
+
+- [ ] Integrate Tier 1 with Tier 2
+  - [ ] Connect threshold detection to backend API
+  - [ ] Handle AI response in frontend
+  - [ ] Update notifications based on AI confirmation
+- [ ] Test complete flow: BLE → Threshold → API → AI → FCM
+- [ ] Test false positive handling
+- [ ] Test offline queue (if implemented)
+
+### Phase 2 Testing
+
+#### Backend Testing
+- [ ] Unit tests for Gemini service
+- [ ] Unit tests for FCM service
+- [ ] Unit tests for crash controller
+- [ ] Integration tests for crash alert endpoint
+- [ ] Integration tests with mock Gemini responses
+- [ ] Test FCM token management
+- [ ] Test sensor data retrieval
+
+#### Frontend Testing (Phase 2)
+- [ ] Integration tests for API calls
+- [ ] Integration tests for crash detection hook with backend
+- [ ] Test AI response handling
+- [ ] Test FCM token registration
+- [ ] Test push notification handling
+
+#### End-to-End Testing (Phase 2)
+- [ ] Test complete flow: BLE → Threshold → API → AI → FCM
+- [ ] Test false positive scenarios (AI correctly identifies false alarms)
+- [ ] Test offline handling (queue alerts when offline)
+- [ ] Test BLE disconnection during crash
+- [ ] Performance testing (response times)
+- [ ] Load testing (multiple simultaneous alerts)
+- [ ] Test AI confirmation accuracy
+
+### Documentation
+
+- [ ] Document BLE UUIDs and configuration
+- [ ] Document threshold values and tuning
+- [ ] Document API endpoints
+- [ ] Document environment variables
+- [ ] Document ESP32 setup and configuration
+- [ ] Create user guide for mobile app
+- [ ] Create developer guide for extending the system
+
+### Security & Privacy
+
+- [ ] Implement API rate limiting for crash alert endpoint
+- [ ] Secure FCM token storage
+- [ ] Implement token refresh mechanism
+- [ ] Encrypt sensitive sensor data (if required)
+- [ ] Review GDPR/privacy compliance
+- [ ] Secure BLE communication (if needed)
+- [ ] Validate all API inputs
+
+### Deployment
+
+- [ ] Configure production environment variables
+- [ ] Setup production Firebase project
+- [ ] Configure production FCM credentials
+- [ ] Setup database indexes
+- [ ] Configure logging
+- [ ] Setup monitoring and alerts
+- [ ] Performance optimization
+- [ ] Load testing in production-like environment
+
+---
+
 ## Overview
 
 This document outlines the two-tier crash detection system that combines fast client-side threshold detection with intelligent backend AI analysis using Gemini API. This approach balances speed (immediate alerts) with accuracy (AI confirmation).
@@ -77,55 +495,45 @@ frontend/
 ├── app/                          # Expo Router pages (existing)
 │   ├── (tabs)/
 │   └── ...
-├── src/                          # New: Source code organization
-│   ├── services/                 # Business logic & API calls
-│   │   ├── api/
-│   │   │   ├── client.ts         # Axios/API client setup
-│   │   │   ├── device.ts         # Device data endpoints
-│   │   │   └── crash.ts           # Crash analysis endpoints
-│   │   ├── crash/
-│   │   │   ├── threshold.ts      # Threshold detection logic
-│   │   │   └── calculator.ts     # G-force, tilt calculations
-│   │   └── fcm/
-│   │       ├── messaging.ts      # FCM service
-│   │       └── notifications.ts  # Notification handling
-│   ├── hooks/                    # Custom React hooks
-│   │   ├── useCrashDetection.ts  # Crash detection hook
-│   │   ├── useDeviceData.ts      # Device data hook
-│   │   └── useFCM.ts              # FCM hook
-│   ├── utils/                    # Utility functions
-│   │   ├── math.ts               # Math utilities (G-force calc)
-│   │   ├── validation.ts         # Data validation
-│   │   └── constants.ts          # App constants
-│   ├── types/                    # TypeScript types
-│   │   ├── device.ts             # Device data types
-│   │   ├── crash.ts               # Crash detection types
-│   │   └── api.ts                 # API response types
-│   ├── context/                  # React Context for local/client state
-│   │   ├── DeviceContext.tsx     # Device BLE connection state (local)
-│   │   └── CrashContext.tsx      # Crash alert UI state (local)
-│   ├── lib/                      # Library setup & configuration
-│   │   └── queryClient.ts        # TanStack Query client setup
-│   ├── hooks/                    # Custom React hooks
-│   │   ├── queries/              # TanStack Query hooks for server state
-│   │   │   ├── useCrashEvents.ts # Query crash events from API
-│   │   │   ├── useDeviceData.ts  # Query device data from API
-│   │   │   └── useCrashHistory.ts
-│   │   ├── mutations/            # TanStack Query mutations
-│   │   │   ├── useSendCrashAlert.ts # Mutation for sending crash alert
-│   │   │   └── useCrashFeedback.ts  # Mutation for user feedback
-│   │   ├── useCrashDetection.ts  # Crash detection logic hook
-│   │   └── useFCM.ts              # FCM hook
-│   ├── services/
-│   │   └── bluetooth/           # Bluetooth Low Energy (BLE) service
-│   │       ├── bleManager.ts     # BLE connection management
-│   │       └── deviceScanner.ts  # Device scanning & pairing
-│   └── components/               # Reusable components
-│       ├── crash/
-│       │   ├── CrashAlert.tsx    # Crash alert component
-│       │   └── CrashIndicator.tsx
-│       └── device/
-│           └── SensorDisplay.tsx
+├── services/                     # Business logic & API calls
+│   ├── api/
+│   │   └── crash.ts              # Crash analysis endpoints
+│   ├── bluetooth/                # Bluetooth Low Energy (BLE) service
+│   │   ├── bleManager.ts         # BLE connection management
+│   │   └── deviceScanner.ts      # Device scanning & pairing
+│   ├── crash/
+│   │   ├── threshold.ts          # Threshold detection logic
+│   │   └── calculator.ts         # G-force, tilt calculations
+│   ├── auth.service.ts           # Authentication service
+│   ├── device.service.ts         # Device service
+│   └── ...                       # Other services
+├── hooks/                        # Custom React hooks
+│   ├── mutations/                # TanStack Query mutations
+│   │   └── useSendCrashAlert.ts  # Mutation for sending crash alert
+│   ├── useCrashDetection.ts      # Crash detection logic hook
+│   ├── useAuth.ts                # Auth hook
+│   └── ...                       # Other hooks
+├── utils/                        # Utility functions
+│   ├── validation.ts             # Data validation
+│   └── constants.ts              # App constants
+├── types/                        # TypeScript types
+│   ├── device.ts                 # Device data types
+│   ├── crash.ts                  # Crash detection types
+│   └── api.ts                    # API response types
+├── context/                      # React Context for local/client state
+│   ├── DeviceContext.tsx         # Device BLE connection state (local)
+│   ├── CrashContext.tsx          # Crash alert UI state (local)
+│   ├── AuthContext.tsx           # Auth context
+│   └── ...                       # Other contexts
+├── lib/                          # Library setup & configuration
+│   └── queryClient.ts            # TanStack Query client setup
+├── components/                   # Reusable components
+│   ├── crash/
+│   │   ├── CrashAlert.tsx        # Crash alert component
+│   │   └── CrashIndicator.tsx    # Crash indicator component
+│   ├── device/
+│   │   └── SensorDisplay.tsx     # Sensor display component
+│   └── ToastContainer.tsx        # Toast component
 ├── constants/                    # App constants (existing)
 ├── assets/                       # Assets (existing)
 └── package.json
@@ -151,7 +559,7 @@ npm install react-native-ble-manager
 npx expo install expo-bluetooth
 ```
 
-**File**: `frontend/src/services/bluetooth/bleManager.ts`
+**File**: `frontend/services/bluetooth/bleManager.ts`
 
 ```typescript
 import { BleManager, Device, Characteristic } from 'react-native-ble-manager';
@@ -172,6 +580,7 @@ export class BLEManager {
   private manager: BleManager;
   private connectedDevice: Device | null = null;
   private onDataReceived?: (data: SensorReading) => void;
+  private characteristicListener: any = null;
 
   constructor() {
     this.manager = new BleManager();
@@ -227,8 +636,8 @@ export class BLEManager {
         SENSOR_DATA_CHARACTERISTIC_UUID
       );
 
-      // Listen for data updates
-      this.manager.addListener(
+      // Listen for data updates (store reference for cleanup)
+      this.characteristicListener = this.manager.addListener(
         'BleManagerDidUpdateValueForCharacteristic',
         ({ value }: { value: number[] }) => {
           const sensorData = this.parseSensorData(value);
@@ -249,6 +658,12 @@ export class BLEManager {
    */
   async disconnect(): Promise<void> {
     if (this.connectedDevice) {
+      // Remove listener to prevent memory leaks
+      if (this.characteristicListener) {
+        this.characteristicListener.remove();
+        this.characteristicListener = null;
+      }
+      
       await this.manager.stopNotification(
         this.connectedDevice.id,
         SENTRY_SERVICE_UUID,
@@ -271,22 +686,28 @@ export class BLEManager {
    * ESP32 sends data as: {ax, ay, az, roll, pitch, tilt_detected, timestamp}
    */
   private parseSensorData(value: number[]): SensorReading {
-    // Convert byte array to sensor reading
-    // Format depends on ESP32 implementation
-    // Example: JSON string or binary format
-    const dataString = String.fromCharCode(...value);
-    const data = JSON.parse(dataString);
-    
-    return {
-      device_id: this.connectedDevice?.id || 'unknown',
-      ax: data.ax,
-      ay: data.ay,
-      az: data.az,
-      roll: data.roll,
-      pitch: data.pitch,
-      tilt_detected: data.tilt_detected || false,
-      timestamp: new Date().toISOString(),
-    };
+    try {
+      // Convert byte array to sensor reading
+      // Format depends on ESP32 implementation
+      // Example: JSON string or binary format
+      const dataString = String.fromCharCode(...value);
+      const data = JSON.parse(dataString);
+      
+      return {
+        device_id: this.connectedDevice?.id || 'unknown',
+        ax: data.ax ?? 0,
+        ay: data.ay ?? 0,
+        az: data.az ?? 0,
+        roll: data.roll ?? 0,
+        pitch: data.pitch ?? 0,
+        tilt_detected: data.tilt_detected || false,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error parsing sensor data:', error);
+      // Return safe default values or throw based on your error handling strategy
+      throw new Error('Invalid sensor data format');
+    }
   }
 
   /**
@@ -298,7 +719,7 @@ export class BLEManager {
 }
 ```
 
-**File**: `frontend/src/services/bluetooth/deviceScanner.ts`
+**File**: `frontend/services/bluetooth/deviceScanner.ts`
 
 ```typescript
 import { BLEManager, BLEDevice } from './bleManager';
@@ -378,7 +799,7 @@ Use a hybrid approach: **TanStack Query** for server state (API data) and **Reac
 npm install @tanstack/react-query
 ```
 
-**File**: `frontend/src/lib/queryClient.ts`
+**File**: `frontend/lib/queryClient.ts`
 
 ```typescript
 import { QueryClient } from '@tanstack/react-query';
@@ -387,7 +808,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 10, // 10 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (garbage collection time)
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -421,7 +842,7 @@ export default function RootLayout() {
 
 #### TanStack Query Hooks for Server State
 
-**File**: `frontend/src/hooks/queries/useCrashEvents.ts`
+**File**: `frontend/hooks/queries/useCrashEvents.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query';
@@ -443,7 +864,7 @@ export function useCrashEvents(deviceId: string) {
 }
 ```
 
-**File**: `frontend/src/hooks/queries/useCrashHistory.ts`
+**File**: `frontend/hooks/queries/useCrashHistory.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query';
@@ -478,7 +899,9 @@ export function useCrashHistory(options: UseCrashHistoryOptions) {
 
 #### TanStack Query Mutations
 
-**File**: `frontend/src/hooks/mutations/useSendCrashAlert.ts`
+> **Note**: This is Phase 2 implementation. Not needed in Phase 1.
+
+**File**: `frontend/hooks/mutations/useSendCrashAlert.ts` (Phase 2)
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -517,7 +940,7 @@ export function useSendCrashAlert() {
 }
 ```
 
-**File**: `frontend/src/hooks/mutations/useCrashFeedback.ts`
+**File**: `frontend/hooks/mutations/useCrashFeedback.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -552,7 +975,7 @@ export function useCrashFeedback() {
 
 #### React Context for Local State
 
-**File**: `frontend/src/context/DeviceContext.tsx`
+**File**: `frontend/context/DeviceContext.tsx`
 
 ```typescript
 import React, { createContext, useContext, useState, useCallback } from 'react';
@@ -622,11 +1045,11 @@ export function useDevice() {
 }
 ```
 
-**File**: `frontend/src/context/CrashContext.tsx`
+**File**: `frontend/context/CrashContext.tsx`
 
 ```typescript
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { ThresholdResult } from '@/services/crash/threshold';
+import { ThresholdResult } from '@/types/crash';
 
 interface CrashContextType {
   lastCrashAlert: ThresholdResult | null;
@@ -705,7 +1128,7 @@ function CrashHistoryScreen() {
 
 ### Threshold Detection Logic
 
-**File**: `frontend/src/services/crash/threshold.ts`
+**File**: `frontend/services/crash/threshold.ts`
 
 ```typescript
 import { SensorReading } from '@/types/device';
@@ -760,9 +1183,10 @@ export class ThresholdDetector {
       this.triggerHistory.shift();
     }
 
-    // Require consecutive triggers
-    const consecutiveCount = this.triggerHistory.filter(Boolean).length;
-    const confirmed = consecutiveCount >= this.config.consecutiveTriggers;
+    // Require consecutive triggers at the end of history
+    const recentTriggers = this.triggerHistory.slice(-this.config.consecutiveTriggers);
+    const confirmed = recentTriggers.length === this.config.consecutiveTriggers && 
+                      recentTriggers.every(Boolean);
 
     // Determine severity
     let severity: 'low' | 'medium' | 'high' = 'low';
@@ -803,15 +1227,21 @@ export class ThresholdDetector {
 
 ### Calculator Utilities
 
-**File**: `frontend/src/services/crash/calculator.ts`
+**File**: `frontend/services/crash/calculator.ts`
 
 ```typescript
 /**
  * Calculate total G-force from acceleration components
  * Formula: sqrt(ax² + ay² + az²)
+ * 
+ * Note: This assumes ESP32 sends acceleration data in m/s².
+ * If ESP32 already compensates for gravity, use the result directly.
+ * Otherwise, you may need to subtract gravity (9.81 m/s²) from the vertical component.
  */
 export function calculateGForce(ax: number, ay: number, az: number): number {
-  return Math.sqrt(ax * ax + ay * ay + az * az);
+  const totalAccel = Math.sqrt(ax * ax + ay * ay + az * az);
+  // Convert to G-force (divide by 9.81 m/s²)
+  return totalAccel / 9.81;
 }
 
 /**
@@ -845,14 +1275,16 @@ export function isTiltExceeded(
 
 ### React Hook for Crash Detection
 
-**File**: `frontend/src/hooks/useCrashDetection.ts`
+**File**: `frontend/hooks/useCrashDetection.ts`
 
 ```typescript
 import { useEffect, useRef, useState } from 'react';
-import { ThresholdDetector, ThresholdResult } from '@/services/crash/threshold';
+import { ThresholdDetector } from '@/services/crash/threshold';
+import { ThresholdResult } from '@/types/crash';
 import { SensorReading } from '@/types/device';
-import { useSendCrashAlert } from '@/hooks/mutations/useSendCrashAlert';
-import { showLocalNotification } from '@/services/fcm/notifications';
+// Phase 2: Import mutation and notifications
+// import { useSendCrashAlert } from '@/hooks/mutations/useSendCrashAlert';
+// import { showLocalNotification } from '@/services/fcm/notifications';
 
 interface UseCrashDetectionOptions {
   enabled?: boolean;
@@ -863,9 +1295,10 @@ interface UseCrashDetectionOptions {
 /**
  * Hook for crash detection using threshold analysis.
  * 
- * Receives sensor data from BLE connection (every 2 seconds from ESP32 device).
- * Performs fast threshold detection (Tier 1) and sends to backend for AI analysis (Tier 2).
- * Uses TanStack Query mutation for server state management.
+ * Phase 1: Receives sensor data from BLE connection (every 2 seconds from ESP32 device).
+ * Performs fast threshold detection (Tier 1) and logs to console.
+ * 
+ * Phase 2: Will send to backend for AI analysis (Tier 2) using TanStack Query mutation.
  * 
  * @param sensorData - Sensor reading from BLE (received every 2 seconds)
  * @param options - Configuration options
@@ -877,56 +1310,64 @@ export function useCrashDetection(
   const { enabled = true, onThresholdExceeded, onAIConfirmation } = options;
   const detectorRef = useRef(new ThresholdDetector());
   const [lastResult, setLastResult] = useState<ThresholdResult | null>(null);
+  const isProcessingRef = useRef(false);
   
-  // Use TanStack Query mutation for sending crash alert
-  const sendCrashAlertMutation = useSendCrashAlert();
+  // Phase 2: Use TanStack Query mutation for sending crash alert
+  // const sendCrashAlertMutation = useSendCrashAlert();
 
   useEffect(() => {
     // Process each sensor reading received via BLE (every 2 seconds)
-    if (!enabled || !sensorData || sendCrashAlertMutation.isPending) return;
+    if (!enabled || !sensorData || isProcessingRef.current) return;
 
     const result = detectorRef.current.checkThreshold(sensorData);
 
-    if (result.isTriggered) {
+    if (result.isTriggered && !isProcessingRef.current) {
+      isProcessingRef.current = true;
       setLastResult(result);
 
-      // Immediate local alert
-      showLocalNotification({
-        title: '⚠️ Potential Crash Detected',
-        body: 'Analyzing with AI...',
-        data: { type: 'crash_detected', severity: result.severity },
+      // Phase 1: Console log threshold exceeded (no notifications yet)
+      console.log('⚠️ THRESHOLD EXCEEDED - Potential Crash Detected', {
+        timestamp: new Date().toISOString(),
+        severity: result.severity,
+        triggerType: result.triggerType,
+        gForce: result.gForce,
+        tilt: result.tilt,
+        sensorData: sensorData,
       });
 
-      // Send to backend for AI analysis using TanStack Query mutation
-      sendCrashAlertMutation.mutate(
+      // Phase 2: Send to backend for AI analysis using TanStack Query mutation
+      // sendCrashAlertMutation.mutate(
         {
           device_id: sensorData.device_id,
           sensor_reading: sensorData,
           threshold_result: result,
           timestamp: new Date().toISOString(),
         },
-        {
-          onSuccess: (aiResponse) => {
-            // AI confirmation received
-            onAIConfirmation?.(aiResponse.is_crash);
-            
-            // Notifications are handled in useSendCrashAlert mutation
-            // (see hooks/mutations/useSendCrashAlert.ts)
-            
-            // Reset detector after processing
-            detectorRef.current.reset();
-          },
-          onError: (error) => {
-            console.error('Error sending crash alert:', error);
-            // Keep threshold alert active if AI fails
-            detectorRef.current.reset();
-          },
-        }
-      );
+      //   {
+      //     onSuccess: (aiResponse) => {
+      //       // AI confirmation received
+      //       onAIConfirmation?.(aiResponse.is_crash);
+      //       // Reset detector after processing
+      //       detectorRef.current.reset();
+      //       isProcessingRef.current = false;
+      //     },
+      //     onError: (error) => {
+      //       console.error('Error sending crash alert:', error);
+      //       detectorRef.current.reset();
+      //       isProcessingRef.current = false;
+      //     },
+      //   }
+      // );
+
+      // Phase 1: Reset after logging (no backend call yet)
+      setTimeout(() => {
+        detectorRef.current.reset();
+        isProcessingRef.current = false;
+      }, 1000); // Reset after 1 second
 
       onThresholdExceeded?.(result);
     }
-  }, [sensorData, enabled, sendCrashAlertMutation, onThresholdExceeded, onAIConfirmation]);
+  }, [sensorData, enabled, onThresholdExceeded, onAIConfirmation]);
 
   return {
     lastResult,
@@ -938,12 +1379,12 @@ export function useCrashDetection(
 
 ### API Service
 
-**File**: `frontend/src/services/api/crash.ts`
+**File**: `frontend/services/api/crash.ts`
 
 ```typescript
 import { apiClient } from './client';
 import { SensorReading } from '@/types/device';
-import { ThresholdResult } from '@/services/crash/threshold';
+import { ThresholdResult } from '@/types/crash';
 
 export interface CrashAlertRequest {
   device_id: string;
@@ -1009,18 +1450,26 @@ Perform intelligent crash analysis using Gemini AI API to confirm or deny thresh
 
 ### Backend Endpoint
 
+**Note**: Following the backend guide conventions:
+- Controllers contain business logic
+- Services (like `FCMService`, `GeminiService`) are used for external integrations
+- Complex model-specific logic should go in `utils/{model_name}_utils.py`
+- Import organization: standard library → third-party → Django → local imports
+
 **File**: `backend/sentry/device/controllers/crash_controller.py`
 
 ```python
+import logging
+from typing import Any
+
 from django.http import HttpRequest
-from ninja import Router
 from ninja.errors import HttpError
+
+from core.ai.gemini_service import GeminiService
+from device.models.crash_event import CrashEvent
 from device.schemas.crash_schema import CrashAlertRequest, CrashAlertResponse
 from device.services.crash_detector import CrashDetectorService
 from device.services.fcm_service import FCMService
-from device.models.crash_event import CrashEvent
-from core.ai.gemini_service import GeminiService
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -1114,11 +1563,14 @@ def process_crash_alert(
 **File**: `backend/sentry/device/router/crash_router.py`
 
 ```python
-from ninja import Router
+from typing import Any
+
 from django.http import HttpRequest
+from ninja import Router
+
+from core.auth.api_key import DeviceAPIKeyAuth
 from device.controllers.crash_controller import process_crash_alert
 from device.schemas.crash_schema import CrashAlertRequest, CrashAlertResponse
-from device.auth import DeviceAPIKeyAuth
 
 crash_router = Router(tags=["crash"], auth=DeviceAPIKeyAuth())
 
@@ -1134,6 +1586,38 @@ def crash_alert_endpoint(
     """
     return process_crash_alert(request, payload)
 ```
+
+**Note**: The `crash_router` should be registered in the device router:
+
+**File**: `backend/sentry/device/router/device_router.py` (update)
+
+```python
+"""Device router."""
+
+from core.auth.api_key import DeviceAPIKeyAuth
+from django.http import HttpRequest
+from ninja import Router
+
+from device.controllers.device_controller import receive_device_data
+from device.schemas import DeviceDataRequest, DeviceDataResponse
+from .crash_router import crash_router
+
+device_router = Router(tags=["device"], auth=DeviceAPIKeyAuth())
+
+# Existing endpoint
+@device_router.post("/data", response=DeviceDataResponse)
+def receive_device_data_endpoint(
+    request: HttpRequest,
+    payload: DeviceDataRequest,
+) -> DeviceDataResponse:
+    """Endpoint the embedded device can POST MPU6050 data to."""
+    return receive_device_data(request, payload)
+
+# Register crash router
+device_router.add_router("crash", crash_router)
+```
+
+The `device_router` is already registered in `api/v1/router.py`, so the crash endpoint will be available at `/api/v1/device/crash/alert`.
 
 ---
 
@@ -1155,11 +1639,13 @@ pip install firebase-admin>=6.0.0
 **File**: `backend/sentry/device/services/fcm_service.py`
 
 ```python
-import firebase_admin
-from firebase_admin import credentials, messaging
-from django.conf import settings
-from device.models.crash_event import CrashEvent
 import logging
+
+from django.conf import settings
+from firebase_admin import credentials, messaging
+import firebase_admin
+
+from device.models.crash_event import CrashEvent
 
 logger = logging.getLogger(__name__)
 
@@ -1263,7 +1749,7 @@ class FCMService:
 
 **File**: `backend/sentry/sentry/settings/config.py`
 
-Add:
+Add to the `Settings` class:
 ```python
 fcm_credentials_path: str | None = Field(
     default=None,
@@ -1283,7 +1769,7 @@ npm install @react-native-firebase/app @react-native-firebase/messaging
 
 #### 2. FCM Service
 
-**File**: `frontend/src/services/fcm/messaging.ts`
+**File**: `frontend/services/fcm/messaging.ts`
 
 ```typescript
 import * as Notifications from 'expo-notifications';
@@ -1395,7 +1881,9 @@ export function setupNotificationListeners(
 
 #### 3. Notification Component
 
-**File**: `frontend/src/services/fcm/notifications.ts`
+> **Note**: This is Phase 2 implementation. In Phase 1, use `console.log()` instead of notifications.
+
+**File**: `frontend/services/fcm/notifications.ts` (Phase 2)
 
 ```typescript
 import * as Notifications from 'expo-notifications';
@@ -1409,6 +1897,9 @@ export interface NotificationOptions {
 
 /**
  * Show local notification
+ * 
+ * Phase 1: Use console.log() instead
+ * Phase 2: Implement this function for notifications
  */
 export async function showLocalNotification(
   options: NotificationOptions
@@ -1471,8 +1962,8 @@ export default function RootLayout() {
      - G-force ≥ 8g (configurable)
      - Tilt ≥ 90° (configurable)
    - If threshold exceeded:
-     - Shows **immediate local notification** (<100ms)
-     - Sends alert to backend API with sensor data
+     - **Phase 1**: Logs to console with threshold details (<100ms)
+     - **Phase 2**: Sends alert to backend API with sensor data
    - Continues receiving data every 2 seconds
 
 3. **Backend (Tier 2 - AI Analysis)**
@@ -1522,7 +2013,7 @@ export default function RootLayout() {
 
 ### Threshold Configuration
 
-**File**: `frontend/src/utils/constants.ts`
+**File**: `frontend/utils/constants.ts`
 
 ```typescript
 export const CRASH_DETECTION_CONFIG = {
@@ -1564,8 +2055,8 @@ crash_medium_severity_g_force: float = 12.0
    - Test consecutive trigger logic
 
 2. **Integration Tests**
-   - Test API calls to backend
-   - Test local notifications
+   - Test API calls to backend (Phase 2)
+   - Test console logging on threshold (Phase 1)
    - Test hook behavior
 
 ### Tier 2 Testing (Backend)
@@ -1584,9 +2075,9 @@ crash_medium_severity_g_force: float = 12.0
 
 1. **Simulate Crash**
    - Send high G-force data from mobile app
-   - Verify immediate local notification
-   - Verify backend AI analysis
-   - Verify FCM push notification
+   - **Phase 1**: Verify console log shows threshold exceeded
+   - **Phase 2**: Verify backend AI analysis
+   - **Phase 2**: Verify FCM push notification
 
 2. **False Positive Testing**
    - Send normal sensor data
@@ -1658,60 +2149,6 @@ crash_medium_severity_g_force: float = 12.0
 4. **Emergency Services Integration**
    - Auto-dial emergency services for high-severity crashes
    - Include location data
-
----
-
-## Implementation Checklist
-
-### Frontend
-- [ ] Create folder structure (`src/services`, `src/hooks`, `src/context`, `src/lib`, etc.)
-- [ ] Setup TanStack Query
-  - [ ] Install `@tanstack/react-query`
-  - [ ] Create query client configuration
-  - [ ] Setup QueryClientProvider in app root
-  - [ ] Create query hooks (`useCrashEvents`, `useCrashHistory`)
-  - [ ] Create mutation hooks (`useSendCrashAlert`, `useCrashFeedback`)
-- [ ] Setup Bluetooth Low Energy (BLE) service
-  - [ ] Install BLE library (`react-native-ble-manager` or `expo-bluetooth`)
-  - [ ] Implement BLE manager for ESP32 connection
-  - [ ] Implement device scanner and pairing
-  - [ ] Configure data reception (every 2 seconds)
-- [ ] Implement React Context for local state management
-  - [ ] Create DeviceContext for BLE connection state (local)
-  - [ ] Create CrashContext for crash alert UI state (local)
-- [ ] Implement threshold detection logic
-- [ ] Implement calculator utilities (G-force, tilt)
-- [ ] Create `useCrashDetection` hook (using TanStack Query mutation)
-- [ ] Setup FCM service
-- [ ] Create notification components
-- [ ] Integrate BLE data flow with crash detection
-- [ ] Integrate with existing app
-
-### Backend
-- [ ] Create crash alert endpoint
-- [ ] Implement Gemini AI integration
-- [ ] Create CrashEvent model
-- [ ] Setup FCM service
-- [ ] Implement device token storage
-- [ ] Add async task processing (optional)
-
-### Configuration
-- [ ] Setup Firebase project
-- [ ] Download service account JSON
-- [ ] Configure FCM credentials
-- [ ] Setup Expo push notifications
-- [ ] Configure threshold values
-- [ ] Configure ESP32 BLE
-  - [ ] Set BLE service UUID and characteristic UUID
-  - [ ] Configure data transmission interval (2 seconds)
-  - [ ] Format sensor data as JSON
-  - [ ] Test BLE connection with mobile app
-
-### Testing
-- [ ] Unit tests for threshold logic
-- [ ] Integration tests for API
-- [ ] End-to-end crash simulation
-- [ ] Performance testing
 
 ---
 

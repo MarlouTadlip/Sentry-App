@@ -99,9 +99,49 @@ class Settings(BaseSettings):
         default="http://localhost:8000",
         description="The URL of the API",
     )
+    web_url: str = Field(
+        default="http://localhost:4321",
+        description="The URL of the frontend web application",
+    )
     device_api_key: str | None = Field(
         default=None,
         description="The API key for the device",
+    )
+    # Gemini AI settings
+    gemini_api_key: str | None = Field(
+        default=None,
+        description="Google Gemini API key for crash analysis",
+    )
+    gemini_model: str = Field(
+        default="gemini-pro",
+        description="Gemini model name to use",
+    )
+    gemini_analysis_lookback_seconds: int = Field(
+        default=30,
+        description="Number of seconds of sensor data to analyze",
+    )
+    # Push notification settings (Expo)
+    expo_push_api_url: str = Field(
+        default="https://exp.host/--/api/v2/push/send",
+        description="Expo Push Notification API endpoint URL",
+    )
+    # FCM settings (deprecated - using Expo Push API now)
+    fcm_credentials_path: str | None = Field(
+        default=None,
+        description="Path to Firebase service account JSON file (deprecated - not used with Expo Push API)",
+    )
+    # Crash detection settings
+    crash_confidence_threshold: float = Field(
+        default=0.7,
+        description="Minimum confidence score for crash confirmation",
+    )
+    crash_high_severity_g_force: float = Field(
+        default=15.0,
+        description="G-force threshold for high severity crashes",
+    )
+    crash_medium_severity_g_force: float = Field(
+        default=12.0,
+        description="G-force threshold for medium severity crashes",
     )
 
     @field_validator(

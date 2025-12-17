@@ -41,7 +41,7 @@ app-example
 
 # generated native folders
 /ios
-/android
+frontend/android/
 
 
 # ============= DJANGO / PYTHON =============
@@ -52,6 +52,12 @@ venv/
 /static
 dist/
 .ruff_cache/
+backend/sentry/firebase/
+# Firebase credentials
+**/firebase/*.json
+**/*service-account*.json
+**/google-services.json
+**/GoogleService-Info.plist
 # backend/**/logs/
 
 

@@ -1,16 +1,46 @@
 import { Stack } from "expo-router";
-import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { TamaguiProvider } from "tamagui";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { queryClient } from "../lib/queryClient";
+import { AuthProvider } from "../context/AuthContext";
+import { ThemeProvider, useThemeContext } from "../context/ThemeContext";
+import { ToastProvider } from "../context/ToastContext";
+import { DeviceProvider } from "../context/DeviceContext";
+import { CrashProvider } from "../context/CrashContext";
+import { ToastContainer } from "../components/ToastContainer";
 import config from "../tamagui.config";
 
-export default function Layout() {
-  const colorScheme = useColorScheme();
+function ThemedApp() {
+  const { activeTheme } = useThemeContext();
+  console.log('🚀 App starting...');
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <TamaguiProvider config={config} defaultTheme={colorScheme!}>
-        <Stack screenOptions={{ headerShown: false }} />
-      </TamaguiProvider>
-    </GestureHandlerRootView>
+    <TamaguiProvider config={config} defaultTheme={activeTheme}>
+      <DeviceProvider>
+        <CrashProvider>
+          <ToastProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+            <ToastContainer />
+          </ToastProvider>
+        </CrashProvider>
+      </DeviceProvider>
+    </TamaguiProvider>
+  );
+}
+
+export default function Layout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <ThemedApp />
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

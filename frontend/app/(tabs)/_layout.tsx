@@ -1,22 +1,50 @@
-import { Colors } from "@/constants/colors";
 import { History, Home, Settings, Users } from "@tamagui/lucide-icons";
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs, Redirect, useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/useToast";
+
 const _layout = () => {
+  const colors = useThemeColors();
+  const { isAuthenticated, isVerified, isInitializing } = useAuth();
+  const toast = useToast();
+  const router = useRouter();
+
+  // Redirect to landing page if not authenticated
+  useEffect(() => {
+    if (!isInitializing && !isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, isInitializing, router]);
+
+  // Show nothing while initializing (or a loading spinner)
+  if (isInitializing) {
+    return null;
+  }
+
+  // Redirect unauthenticated users to landing page
+  if (!isAuthenticated) {
+    return <Redirect href="/" />;
+  }
+  
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.green[500],
-        tabBarInactiveTintColor: Colors.gray[200],
-        headerStyle: { backgroundColor: Colors.green[400] },
-        headerTintColor: "#ffffffff",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.gray[200],
+        headerStyle: { backgroundColor: colors.green[400] },
+        headerTintColor: "#ffffff",
+        tabBarStyle: {
+          backgroundColor: colors.background,
+        },
         sceneStyle: {
-          backgroundColor: Colors.green[100],
+          backgroundColor: colors.background,
         },
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
           headerTitle: "Sentry",
@@ -31,6 +59,15 @@ const _layout = () => {
           headerTitle: "Sentry",
           headerTitleAlign: "center",
           tabBarIcon: () => <Users />,
+          tabBarStyle: !isVerified ? { opacity: 0.5 } : undefined,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (!isVerified) {
+              e.preventDefault();
+              toast.showWarning("Verification Required", "You must be verified before you can access this feature.");
+            }
+          },
         }}
       ></Tabs.Screen>
       <Tabs.Screen
@@ -40,6 +77,15 @@ const _layout = () => {
           headerTitle: "Sentry",
           headerTitleAlign: "center",
           tabBarIcon: () => <History />,
+          tabBarStyle: !isVerified ? { opacity: 0.5 } : undefined,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (!isVerified) {
+              e.preventDefault();
+              toast.showWarning("Verification Required", "You must be verified before you can access this feature.");
+            }
+          },
         }}
       ></Tabs.Screen>
       <Tabs.Screen
