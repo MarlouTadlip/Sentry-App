@@ -6,6 +6,51 @@
 	box-sizing: border-box;
 }
 
+@layer base {
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+}
+
+@layer components {
+	.card {
+		@apply rounded-2xl border border-slate-200/70 bg-white/80 p-8 shadow-lg shadow-blue-200/30 backdrop-blur;
+	}
+
+	.btn-primary {
+		@apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+		@apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-200/60 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-400 disabled:to-slate-400 disabled:shadow-none disabled:cursor-not-allowed;
+	}
+
+	.btn-secondary {
+		@apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+		@apply border border-slate-300 bg-white/70 text-slate-900 hover:bg-white;
+	}
+
+	.btn-outline {
+		@apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+		@apply border-2 border-blue-600/20 bg-transparent text-blue-700 hover:border-blue-600/30 hover:bg-blue-50;
+	}
+
+	.btn {
+		@apply inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+	}
+
+	.input {
+		@apply w-full rounded-xl border border-slate-300 bg-white/70 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30;
+	}
+
+	.link {
+		@apply text-blue-700 hover:text-blue-800;
+	}
+}
+
 body {
 	margin: 0;
 	padding: 0;
