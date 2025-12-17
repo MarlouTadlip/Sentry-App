@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README.md
+BACKEND_GUIDE.md
+
+# Development files
+poetry.lock
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs (keep directory structure but ignore log files)
+logs/*.log
+
+# Firebase credentials (should be mounted as volume or secret)
+firebase/*.json
+
+# Media files (user uploads - should be in volume)
+media/
+
