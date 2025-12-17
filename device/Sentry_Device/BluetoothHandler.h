@@ -10,7 +10,6 @@
 // BLE Service and Characteristic UUIDs
 #define SERVICE_UUID              "0000ff00-0000-1000-8000-00805f9b34fb"
 #define CHAR_SENSOR_DATA_UUID     "0000ff01-0000-1000-8000-00805f9b34fb"
-#define CHAR_GPS_DATA_UUID        "0000ff02-0000-1000-8000-00805f9b34fb"
 #define CHAR_CONFIG_UUID           "0000ff03-0000-1000-8000-00805f9b34fb"
 #define CHAR_DEVICE_STATUS_UUID    "0000ff04-0000-1000-8000-00805f9b34fb"
 
@@ -36,6 +35,12 @@
 #define MAX_PACKET_SIZE            512
 #define CRC_POLYNOMIAL             0x1021
 
+// BLE MTU and Chunking Constants
+#define BLE_MTU_REQUEST            512    // Requested MTU size
+#define BLE_DEFAULT_MTU            23     // Default BLE MTU (20 bytes payload + 3 bytes overhead)
+#define BLE_CHUNK_SIZE             20     // Safe chunk size for fallback (default BLE limit)
+#define BLE_CHUNK_DELAY_MS         5      // Delay between chunks in milliseconds
+
 // Function declarations
 void initBluetooth(const char* deviceName);
 bool isBluetoothConnected();
@@ -43,13 +48,16 @@ void handleBluetoothReconnection();
 void processBluetoothCommands();
 
 // Data transmission functions
-void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool tiltDetected);
-void sendGPSData(bool gpsFix, int satellites, float latitude, float longitude, float altitude);
-void sendDeviceStatus(bool wifiConnected, bool gpsFix, int batteryLevel);
+void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool tiltDetected, const char* statusMessage = nullptr, int statusCode = -1);
+void sendDeviceStatus(bool wifiConnected, int batteryLevel);
 
 // Utility functions
 uint16_t calculateCRC16(const uint8_t* data, size_t length);
 uint32_t getNextSequenceNumber();
 void sendErrorResponse(uint8_t errorCode, const char* message);
+
+// MTU and chunking functions
+uint16_t getCurrentMTU();
+void sendDataWithChunking(BLECharacteristic* pChar, const String& data);
 
 #endif
