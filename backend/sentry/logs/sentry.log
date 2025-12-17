@@ -1319,6 +1319,49 @@ INFO 2025-12-17 18:53:54 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200
 INFO 2025-12-17 19:10:21 log "POST /api/v1/core/auth/login HTTP/1.1" 200 432
 INFO 2025-12-17 19:10:22 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
 INFO 2025-12-17 19:10:23 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 21:53:58 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:12:20 autoreload Watching for file changes with StatReloader
+WARNING 2025-12-18 00:13:08 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 401 68
+INFO 2025-12-18 00:13:10 log "POST /api/v1/core/auth/refresh HTTP/1.1" 200 452
+INFO 2025-12-18 00:13:12 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 00:13:14 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 346
+INFO 2025-12-18 00:13:21 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200 65
+INFO 2025-12-18 00:16:03 log "POST /api/v1/core/auth/login HTTP/1.1" 200 440
+INFO 2025-12-18 00:16:04 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 00:16:05 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 368
+INFO 2025-12-18 00:16:12 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200 62
+INFO 2025-12-18 00:16:23 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 41
+INFO 2025-12-18 00:17:13 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 00:17:14 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 368
+INFO 2025-12-18 00:21:22 log "POST /api/v1/core/auth/login HTTP/1.1" 200 440
+INFO 2025-12-18 00:21:23 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 00:21:24 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 368
+INFO 2025-12-18 00:21:31 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200 62
+INFO 2025-12-18 00:21:46 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 41
+WARNING 2025-12-18 00:23:19 log "POST /api/v1/core/auth/register HTTP/1.1" 422 89
+WARNING 2025-12-18 00:23:36 log "POST /api/v1/core/auth/register HTTP/1.1" 422 89
+INFO 2025-12-18 00:23:50 log "POST /api/v1/core/auth/register HTTP/1.1" 200 431
+INFO 2025-12-18 00:23:51 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 00:23:52 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 336
+INFO 2025-12-18 00:23:59 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200 62
+INFO 2025-12-18 00:24:19 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 41
+INFO 2025-12-18 01:25:07 log "POST /api/v1/core/auth/login HTTP/1.1" 200 440
+INFO 2025-12-18 01:25:08 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 01:25:09 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 368
+INFO 2025-12-18 01:25:21 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200 62
+INFO 2025-12-18 01:25:21 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 41
+INFO 2025-12-18 01:25:22 log "POST /api/v1/core/auth/email/send-verification-email HTTP/1.1" 200 41
+INFO 2025-12-18 01:26:35 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
+INFO 2025-12-18 01:26:37 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 368
+INFO 2025-12-18 01:47:58 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 01:58:57 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-18 01:58:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 01:59:07 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\sentry\settings\config.py changed, reloading.
+INFO 2025-12-18 01:59:09 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 02:06:03 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\device\models\crash_event.py changed, reloading.
+INFO 2025-12-18 02:06:04 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 02:06:13 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 02:06:14 autoreload Watching for file changes with StatReloader
 INFO 2025-12-17 19:34:57 log "POST /api/v1/core/auth/login HTTP/1.1" 200 432
 INFO 2025-12-17 19:34:59 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
 INFO 2025-12-17 19:35:01 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
