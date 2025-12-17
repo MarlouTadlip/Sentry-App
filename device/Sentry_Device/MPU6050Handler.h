@@ -9,5 +9,9 @@ extern MPU6050 mpu;
 
 void initMPU();
 void readAccel(float &ax, float &ay, float &az);
+bool isMPU6050Connected();
+bool isMPU6050Working();
+int getMPUStatus();
+const char* getMPUStatusMessage();
 
 #endif

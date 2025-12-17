@@ -53,13 +53,29 @@ void loop() {
   unsigned long currentTime = millis();
   if (currentTime - lastSendTime >= SEND_INTERVAL) {
     if (isBluetoothConnected()) {
-      // Send real sensor data from MPU6050
-      sendSensorData(ax, ay, az, roll, pitch, currentTilt);
+      // Get MPU6050 status message and status code
+      const char* mpuStatusMsg = getMPUStatusMessage();
+      int mpuStatus = getMPUStatus();
       
-      if (currentTilt) {
-        Serial.println("BLE: ⚠️ ACCIDENT DETECTED! Sensor data sent");
-      } else {
-        Serial.println("BLE: Sensor data sent");
+      // Send real sensor data from MPU6050 with status message and status code
+      sendSensorData(ax, ay, az, roll, pitch, currentTilt, mpuStatusMsg, mpuStatus);
+      
+      // Display appropriate status message based on MPU6050 state
+      if (mpuStatus == 0) {
+        // MPU6050 device not working
+        Serial.print("BLE: MPU6050 Status [Code: 0] - ⚠️ MPU6050 device not working - Check connections");
+        Serial.println();
+      } else if (mpuStatus == 1) {
+        // MPU6050 readings unstable
+        Serial.print("BLE: MPU6050 Status [Code: 1] - ⚠️ MPU6050 readings unstable - Check sensor");
+        Serial.println();
+      } else if (mpuStatus == 2) {
+        // MPU6050 working
+        if (currentTilt) {
+          Serial.println("BLE: ⚠️ ACCIDENT DETECTED! Sensor data sent");
+        } else {
+          Serial.println("BLE: Sensor data sent");
+        }
       }
       
       // Get GPS data

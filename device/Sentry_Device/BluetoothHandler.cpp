@@ -234,13 +234,13 @@ bool isBluetoothConnected() {
 }
 
 // Send sensor data with packet structure
-void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool tiltDetected) {
+void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool tiltDetected, const char* statusMessage, int statusCode) {
   if (!deviceConnected || pSensorDataChar == nullptr) {
     return;
   }
   
   // Build JSON packet
-  StaticJsonDocument<192> doc;  // Further reduced
+  StaticJsonDocument<256> doc;  // Increased to accommodate status message
   doc["type"] = "sensor_data";
   doc["sequence"] = getNextSequenceNumber();
   doc["timestamp"] = millis();
@@ -253,6 +253,16 @@ void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool 
   sensor["roll"] = roll;
   sensor["pitch"] = pitch;
   sensor["tilt_detected"] = tiltDetected;
+  
+  // Add status code if provided
+  if (statusCode >= 0) {
+    sensor["status_code"] = statusCode;
+  }
+  
+  // Add status message if provided
+  if (statusMessage != nullptr) {
+    sensor["status_message"] = statusMessage;
+  }
   
   // Serialize JSON
   String jsonData;

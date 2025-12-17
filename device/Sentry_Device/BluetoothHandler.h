@@ -49,7 +49,7 @@ void handleBluetoothReconnection();
 void processBluetoothCommands();
 
 // Data transmission functions
-void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool tiltDetected);
+void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool tiltDetected, const char* statusMessage = nullptr, int statusCode = -1);
 void sendGPSData(bool gpsFix, int satellites, float latitude, float longitude, float altitude, const char* statusMessage = nullptr, int statusCode = -1);
 void sendDeviceStatus(bool wifiConnected, bool gpsFix, int batteryLevel);
 
