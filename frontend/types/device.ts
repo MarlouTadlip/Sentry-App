@@ -11,6 +11,15 @@ export interface SensorReading {
   timestamp: string;
 }
 
+export interface GPSData {
+  fix: boolean;
+  satellites: number;
+  latitude: number | null;
+  longitude: number | null;
+  altitude: number | null;
+  timestamp: string;
+}
+
 export interface BLEDevice {
   id: string;
   name: string;

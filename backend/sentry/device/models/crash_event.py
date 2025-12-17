@@ -30,6 +30,12 @@ class CrashEvent(models.Model):
     max_g_force = models.FloatField(null=True, blank=True)
     impact_acceleration = models.JSONField(default=dict, blank=True)
     final_tilt = models.JSONField(default=dict, blank=True)
+    # GPS Location at Crash Time
+    crash_latitude = models.FloatField(null=True, blank=True)
+    crash_longitude = models.FloatField(null=True, blank=True)
+    crash_altitude = models.FloatField(null=True, blank=True)
+    gps_fix_at_crash = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
+    satellites_at_crash = models.IntegerField(null=True, blank=True)
     alert_sent = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
     user_feedback = models.CharField(
         max_length=20,

@@ -163,11 +163,30 @@ def register(
     # Send verification email
     token = create_email_verification_token(user.id)
     user_name = f"{user.first_name} {user.last_name}".strip() or user.username
-    send_verification_email(
+    logger = logging.getLogger("core")
+    logger.info(
+        "📧 Sending verification email for new user registration | email=%s | user_id=%s | username=%s",
+        user.email,
+        user.id,
+        user.username,
+    )
+    email_sent = send_verification_email(
         user_email=user.email,
         token=token,
         user_name=user_name,
     )
+    if email_sent:
+        logger.info(
+            "[OK] Verification email sent successfully for new user | email=%s | user_id=%s",
+            user.email,
+            user.id,
+        )
+    else:
+        logger.error(
+            "[ERROR] Failed to send verification email for new user | email=%s | user_id=%s",
+            user.email,
+            user.id,
+        )
 
     # Generate tokens for the newly registered user
     user_schema = UserSchema.model_validate(user)
@@ -303,25 +322,62 @@ def send_verification_email_controller(
         Message response
 
     """
+    logger = logging.getLogger("core")
+
+    logger.info(
+        "📧 Email verification request received | email=%s",
+        data.email,
+    )
+
     try:
         user = User.objects.get(email=data.email)
     except User.DoesNotExist:
         # Don't reveal if email exists or not for security
+        logger.warning(
+            "[WARN] Email verification requested for non-existent email | email=%s",
+            data.email,
+        )
         return MessageResponse(message=AuthMessages.EmailVerification.EMAIL_SENT)
 
     if user.is_active:
+        logger.info(
+            "ℹ️ Email verification requested for already verified user | email=%s | user_id=%s",
+            data.email,
+            user.id,
+        )
         return MessageResponse(message=AuthMessages.EmailVerification.ALREADY_VERIFIED)
 
     # Create verification token
     token = create_email_verification_token(user.id)
+    logger.info(
+        "🔑 Email verification token created | email=%s | user_id=%s | token_length=%s",
+        data.email,
+        user.id,
+        len(token),
+    )
 
     # Send email
     user_name = f"{user.first_name} {user.last_name}".strip() or user.username
-    send_verification_email(
+    email_sent = send_verification_email(
         user_email=user.email,
         token=token,
         user_name=user_name,
     )
+
+    if email_sent:
+        logger.info(
+            "[OK] Email verification email sent successfully | email=%s | user_id=%s | user_name=%s",
+            user.email,
+            user.id,
+            user_name,
+        )
+    else:
+        logger.error(
+            "[ERROR] Failed to send email verification email | email=%s | user_id=%s | user_name=%s",
+            user.email,
+            user.id,
+            user_name,
+        )
 
     return MessageResponse(message=AuthMessages.EmailVerification.EMAIL_SENT)
 
@@ -432,22 +488,54 @@ def forgot_password_controller(
         Message response
 
     """
+    logger = logging.getLogger("core")
+
+    logger.info(
+        "🔐 Password reset request received | email=%s",
+        data.email,
+    )
+
     try:
         user = User.objects.get(email=data.email, is_active=True)
     except User.DoesNotExist:
         # Don't reveal if email exists or not for security
+        logger.warning(
+            "[WARN] Password reset requested for non-existent or inactive email | email=%s",
+            data.email,
+        )
         return MessageResponse(message=AuthMessages.PasswordReset.EMAIL_SENT)
 
     # Create password reset token
     token = create_password_reset_token(user.id)
+    logger.info(
+        "🔑 Password reset token created | email=%s | user_id=%s | token_length=%s",
+        user.email,
+        user.id,
+        len(token),
+    )
 
     # Send email
     user_name = f"{user.first_name} {user.last_name}".strip() or user.username
-    send_password_reset_email(
+    email_sent = send_password_reset_email(
         user_email=user.email,
         token=token,
         user_name=user_name,
     )
+
+    if email_sent:
+        logger.info(
+            "[OK] Password reset email sent successfully via SMTP | email=%s | user_id=%s | user_name=%s",
+            user.email,
+            user.id,
+            user_name,
+        )
+    else:
+        logger.error(
+            "[ERROR] Failed to send password reset email via SMTP | email=%s | user_id=%s | user_name=%s",
+            user.email,
+            user.id,
+            user_name,
+        )
 
     return MessageResponse(message=AuthMessages.PasswordReset.EMAIL_SENT)
 
