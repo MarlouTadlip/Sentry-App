@@ -218,6 +218,39 @@ INFO 2025-12-17 19:10:18 auth_controller Email: ''
 INFO 2025-12-17 19:10:18 auth_controller Password present: True
 INFO 2025-12-17 19:10:18 auth_controller =========================
 INFO 2025-12-17 19:10:18 auth_controller Attempting authentication for identifier: 'sentry'
+INFO 2025-12-18 00:16:00 auth_router === LOGIN ENDPOINT REQUEST BODY ===
+INFO 2025-12-18 00:16:00 auth_router Username: ''
+INFO 2025-12-18 00:16:00 auth_router Email: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 00:16:00 auth_router Password present: True
+INFO 2025-12-18 00:16:00 auth_router ===================================
+INFO 2025-12-18 00:16:00 auth_controller === LOGIN REQUEST BODY ===
+INFO 2025-12-18 00:16:00 auth_controller Username: ''
+INFO 2025-12-18 00:16:00 auth_controller Email: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 00:16:00 auth_controller Password present: True
+INFO 2025-12-18 00:16:00 auth_controller =========================
+INFO 2025-12-18 00:16:00 auth_controller Attempting authentication for identifier: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 00:21:20 auth_router === LOGIN ENDPOINT REQUEST BODY ===
+INFO 2025-12-18 00:21:20 auth_router Username: ''
+INFO 2025-12-18 00:21:20 auth_router Email: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 00:21:20 auth_router Password present: True
+INFO 2025-12-18 00:21:20 auth_router ===================================
+INFO 2025-12-18 00:21:20 auth_controller === LOGIN REQUEST BODY ===
+INFO 2025-12-18 00:21:20 auth_controller Username: ''
+INFO 2025-12-18 00:21:20 auth_controller Email: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 00:21:20 auth_controller Password present: True
+INFO 2025-12-18 00:21:20 auth_controller =========================
+INFO 2025-12-18 00:21:20 auth_controller Attempting authentication for identifier: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 01:25:05 auth_router === LOGIN ENDPOINT REQUEST BODY ===
+INFO 2025-12-18 01:25:05 auth_router Username: ''
+INFO 2025-12-18 01:25:05 auth_router Email: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 01:25:05 auth_router Password present: True
+INFO 2025-12-18 01:25:05 auth_router ===================================
+INFO 2025-12-18 01:25:05 auth_controller === LOGIN REQUEST BODY ===
+INFO 2025-12-18 01:25:05 auth_controller Username: ''
+INFO 2025-12-18 01:25:05 auth_controller Email: 'tadlipmarlou@gmail.com'
+INFO 2025-12-18 01:25:05 auth_controller Password present: True
+INFO 2025-12-18 01:25:05 auth_controller =========================
+INFO 2025-12-18 01:25:05 auth_controller Attempting authentication for identifier: 'tadlipmarlou@gmail.com'
 INFO 2025-12-17 19:34:55 auth_router === LOGIN ENDPOINT REQUEST BODY ===
 INFO 2025-12-17 19:34:55 auth_router Username: 'sentry'
 INFO 2025-12-17 19:34:55 auth_router Email: ''
