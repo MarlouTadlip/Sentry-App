@@ -33,6 +33,10 @@ class LovedOne(models.Model):
         default=True,  # pyright: ignore[reportArgumentType]
         help_text="Whether this loved one relationship is active",
     )
+    is_alerted = models.BooleanField(
+        default=False,  # pyright: ignore[reportArgumentType]
+        help_text="Whether this loved one should be alerted when crash is detected",
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="When this loved one relationship was created",

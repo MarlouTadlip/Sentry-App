@@ -14,7 +14,9 @@
     "build:android": "expo run:android",
     "build:android:clean": "expo prebuild --clean && expo run:android",
     "eas:build:dev": "eas build --profile development --platform android",
+    "eas:build:dev:cached": "eas build:dev --platform android",
     "eas:build:dev:ios": "eas build --profile development --platform ios",
+    "eas:build:dev:ios:cached": "eas build:dev --platform ios",
     "eas:build:prod": "eas build --profile production --platform android",
     "eas:build:prod:ios": "eas build --profile production --platform ios"
   },

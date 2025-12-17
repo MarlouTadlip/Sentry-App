@@ -11,7 +11,13 @@ from .auth_schema import (
     VerifyEmailRequest,
     IsUserVerifiedResponse,
 )
-from .loved_one_schema import LovedOneListResponse, LovedOneSchema
+from .loved_one_schema import (
+    AddLovedOneRequest,
+    LovedOneListResponse,
+    LovedOneResponse,
+    LovedOneSchema,
+    UpdateLovedOneRequest,
+)
 from .user_settings_schema import UserSettingsSchema, UserSettingsUpdateRequest
 
 __all__ = [
@@ -29,6 +35,9 @@ __all__ = [
     "IsUserVerifiedResponse",
     "LovedOneSchema",
     "LovedOneListResponse",
+    "LovedOneResponse",
+    "AddLovedOneRequest",
+    "UpdateLovedOneRequest",
     "UserSettingsSchema",
     "UserSettingsUpdateRequest",
 ]

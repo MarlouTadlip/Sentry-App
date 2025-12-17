@@ -44,3 +44,10 @@ class UserUpdateRequest(Schema):
             msg = "This field cannot be empty. Omit the field if you don't want to update it."
             raise ValueError(msg)
         return v
+
+
+class UserSearchResponse(Schema):
+    """User search response schema."""
+
+    users: list[UserSchema]
+    count: int

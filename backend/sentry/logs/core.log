@@ -399,3 +399,16 @@ INFO 2025-12-18 05:09:09 auth_controller Email: ''
 INFO 2025-12-18 05:09:09 auth_controller Password present: True
 INFO 2025-12-18 05:09:09 auth_controller =========================
 INFO 2025-12-18 05:09:09 auth_controller Attempting authentication for identifier: 'sentry'
+INFO 2025-12-18 06:41:07 auth_router === LOGIN ENDPOINT REQUEST BODY ===
+INFO 2025-12-18 06:41:07 auth_router Username: 'sentry'
+INFO 2025-12-18 06:41:07 auth_router Email: ''
+INFO 2025-12-18 06:41:07 auth_router Password present: True
+INFO 2025-12-18 06:41:07 auth_router ===================================
+INFO 2025-12-18 06:41:07 auth_controller === LOGIN REQUEST BODY ===
+INFO 2025-12-18 06:41:07 auth_controller Username: 'sentry'
+INFO 2025-12-18 06:41:07 auth_controller Email: ''
+INFO 2025-12-18 06:41:07 auth_controller Password present: True
+INFO 2025-12-18 06:41:07 auth_controller =========================
+INFO 2025-12-18 06:41:07 auth_controller Attempting authentication for identifier: 'sentry'
+INFO 2025-12-18 06:44:11 loved_one_controller User sentry.safetyhelmet@gmail.com added tadlipae@gmail.com as loved one (is_alerted=False)
+INFO 2025-12-18 06:44:20 loved_one_controller User sentry.safetyhelmet@gmail.com toggled is_alerted for loved one tadlipae@gmail.com to True

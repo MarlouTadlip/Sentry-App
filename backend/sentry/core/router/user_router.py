@@ -9,6 +9,7 @@ from ninja.files import UploadedFile
 from core.auth.jwt import JwtAuth
 from core.controllers.user_controller import (
     get_user_info,
+    search_users,
     update_user_info,
     update_user_profile_picture,
 )
@@ -62,3 +63,23 @@ def update_user_settings_endpoint(
 ) -> dict[str, Any]:
     """Update user settings endpoint."""
     return update_user_settings(request, data.model_dump())
+
+
+@user_router.get("/search", auth=JwtAuth())
+def search_users_endpoint(
+    request: HttpRequest,
+    q: str,
+    limit: int = 10,
+) -> dict[str, Any]:
+    """Search for users by email, username, first name, or last name.
+
+    Args:
+        request: The HTTP request object
+        q: Search query string
+        limit: Maximum number of results (default: 10, max: 50)
+
+    Returns:
+        Dictionary containing list of matching users and count
+
+    """
+    return search_users(request, q, limit)

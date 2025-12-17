@@ -26,10 +26,11 @@ def notify_loved_ones_with_gps(
         logger.warning("No user associated with crash event %s", crash_event.id)  # type: ignore[attr-defined]
         return
 
-    # Get all active loved ones (use select_related to avoid N+1 queries)
+    # Get all active loved ones who should be alerted (use select_related to avoid N+1 queries)
     loved_ones = LovedOne.objects.filter(  # type: ignore[attr-defined]
         user=user,
         is_active=True,
+        is_alerted=True,  # Only alert loved ones who have is_alerted=True
     ).select_related("loved_one")
 
     # Get GPS location

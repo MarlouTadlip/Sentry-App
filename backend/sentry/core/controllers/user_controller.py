@@ -113,3 +113,57 @@ def get_user_info(request: HttpRequest) -> dict[str, Any]:
         "message": "User information fetched successfully",
         "user": user_schema.model_dump(),
     }
+
+
+def search_users(
+    request: HttpRequest,
+    query: str,
+    limit: int = 10,
+) -> dict[str, Any]:
+    """Search for users by email, username, first name, or last name.
+
+    Args:
+        request: The HTTP request object (contains authenticated user via request.user)
+        query: Search query string (searches email, username, first_name, last_name)
+        limit: Maximum number of results to return (default: 10, max: 50)
+
+    Returns:
+        Dictionary containing list of matching users and count
+
+    """
+    from django.db.models import Q  # noqa: PLC0415
+
+    current_user_id = request.user.id  # pyright: ignore[reportAttributeAccessIssue]
+
+    # Limit the search results
+    limit = min(max(limit, 1), 50)  # Between 1 and 50
+
+    # If query is empty or too short, return empty results
+    if not query or len(query.strip()) < 2:
+        return {
+            "users": [],
+            "count": 0,
+        }
+
+    # Search across email, username, first_name, and last_name
+    # Exclude the current user from results
+    search_query = Q(
+        Q(email__icontains=query)
+        | Q(username__icontains=query)
+        | Q(first_name__icontains=query)
+        | Q(last_name__icontains=query),
+    ) & ~Q(id=current_user_id)  # Exclude current user
+
+    # Fetch matching users (only active users)
+    users_queryset = (
+        User.objects.filter(search_query, is_active=True)  # pyright: ignore[reportAttributeAccessIssue]
+        .order_by("email")[:limit]
+    )
+
+    # Convert to schemas
+    user_schemas = [UserSchema.model_validate(user) for user in users_queryset]
+
+    return {
+        "users": [user.model_dump() for user in user_schemas],
+        "count": len(user_schemas),
+    }
