@@ -1354,3 +1354,7 @@ INFO 2025-12-18 01:25:22 log "POST /api/v1/core/auth/email/send-verification-ema
 INFO 2025-12-18 01:26:35 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 57
 INFO 2025-12-18 01:26:37 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 368
 INFO 2025-12-18 01:47:58 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 01:58:57 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-18 01:58:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 01:59:07 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\sentry\settings\config.py changed, reloading.
+INFO 2025-12-18 01:59:09 autoreload Watching for file changes with StatReloader
