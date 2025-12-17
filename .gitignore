@@ -63,3 +63,5 @@ backend/sentry/firebase/
 
 # ============= DEVICE =============
 device/Sentry_Device/secrets.h
+
+backend/sentry/logs
