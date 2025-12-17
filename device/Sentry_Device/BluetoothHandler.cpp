@@ -3,7 +3,6 @@
 // BLE Server and Characteristic objects
 BLEServer* pServer = nullptr;
 BLECharacteristic* pSensorDataChar = nullptr;
-BLECharacteristic* pGPSDataChar = nullptr;
 BLECharacteristic* pConfigChar = nullptr;
 BLECharacteristic* pDeviceStatusChar = nullptr;
 
@@ -188,14 +187,6 @@ void initBluetooth(const char* deviceName) {
                     );
   pSensorDataChar->addDescriptor(new BLE2902());
   
-  // Create GPS Data Characteristic (Read, Notify)
-  pGPSDataChar = pService->createCharacteristic(
-                   BLEUUID(CHAR_GPS_DATA_UUID),
-                   BLECharacteristic::PROPERTY_READ |
-                   BLECharacteristic::PROPERTY_NOTIFY
-                 );
-  pGPSDataChar->addDescriptor(new BLE2902());
-  
   // Create Configuration Characteristic (Write, Notify)
   pConfigChar = pService->createCharacteristic(
                   BLEUUID(CHAR_CONFIG_UUID),
@@ -296,79 +287,8 @@ void sendSensorData(float ax, float ay, float az, float roll, float pitch, bool 
   // Serial.println("]");
 }
 
-// Send GPS data with packet structure
-void sendGPSData(bool gpsFix, int satellites, float latitude, float longitude, float altitude, const char* statusMessage, int statusCode) {
-  if (!deviceConnected || pGPSDataChar == nullptr) {
-    return;
-  }
-  
-  // Build JSON packet
-  StaticJsonDocument<256> doc;  // Increased to accommodate status message
-  doc["type"] = "gps_data";
-  doc["sequence"] = getNextSequenceNumber();
-  doc["timestamp"] = millis();
-  
-  // GPS data
-  JsonObject gps = doc.createNestedObject("gps");
-  gps["fix"] = gpsFix;
-  gps["satellites"] = satellites;
-  
-  // Add status code if provided
-  if (statusCode >= 0) {
-    gps["status_code"] = statusCode;
-  }
-  
-  // Add status message if provided
-  if (statusMessage != nullptr) {
-    gps["status_message"] = statusMessage;
-  }
-  
-  if (gpsFix && latitude != 0.0 && longitude != 0.0) {
-    gps["latitude"] = latitude;
-    gps["longitude"] = longitude;
-    if (altitude != 0.0) {
-      gps["altitude"] = altitude;
-    }
-  } else {
-    gps["latitude"] = nullptr;
-    gps["longitude"] = nullptr;
-    gps["altitude"] = nullptr;
-  }
-  
-  // Serialize JSON
-  String jsonData;
-  serializeJson(doc, jsonData);
-  
-  // Calculate CRC
-  uint8_t* dataBytes = (uint8_t*)jsonData.c_str();
-  size_t dataLength = jsonData.length();
-  uint16_t crc = calculateCRC16(dataBytes, dataLength);
-  
-  // Add CRC to JSON
-  doc["crc"] = crc;
-  jsonData = "";
-  serializeJson(doc, jsonData);
-  
-  // Check data size and warn if too large
-  if (jsonData.length() > MAX_PACKET_SIZE) {
-    Serial.print("BLE WARNING: GPS data exceeds MAX_PACKET_SIZE (");
-    Serial.print(jsonData.length());
-    Serial.print(" > ");
-    Serial.print(MAX_PACKET_SIZE);
-    Serial.println(" bytes)");
-  }
-  
-  // Send via BLE with automatic chunking if needed
-  sendDataWithChunking(pGPSDataChar, jsonData);
-  
-  // Reduced Serial output to save code space
-  // Serial.print("BLE: GPS [Seq: ");
-  // Serial.print(sequenceNumber);
-  // Serial.println("]");
-}
-
 // Send device status
-void sendDeviceStatus(bool wifiConnected, bool gpsFix, int batteryLevel) {
+void sendDeviceStatus(bool wifiConnected, int batteryLevel) {
   if (!deviceConnected || pDeviceStatusChar == nullptr) {
     return;
   }
@@ -380,7 +300,6 @@ void sendDeviceStatus(bool wifiConnected, bool gpsFix, int batteryLevel) {
   
   JsonObject status = doc.createNestedObject("status");
   status["wifi_connected"] = wifiConnected;
-  status["gps_fix"] = gpsFix;
   status["battery_level"] = batteryLevel;
   status["ble_connected"] = true;
   

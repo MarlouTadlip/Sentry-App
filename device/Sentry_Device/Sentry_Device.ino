@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "MPU6050Handler.h"
 #include "TiltDetection.h"
-#include "GPSHandler.h"
 #include "BluetoothHandler.h"
 
 // Data collection variables
@@ -22,10 +21,6 @@ void setup() {
   // Initialize MPU6050
   initMPU();
   Serial.println("MPU6050 initialized");
-
-  // Initialize GPS
-  initGPS();
-  Serial.println("GPS initialized - Waiting for satellite fix...");
   
   lastSendTime = millis();
   Serial.println("Device Ready - Waiting for Bluetooth connection...");
@@ -34,9 +29,6 @@ void setup() {
 void loop() {
   // Handle Bluetooth reconnection
   handleBluetoothReconnection();
-  
-  // Update GPS data (must be called frequently to process NMEA sentences)
-  updateGPS();
 
   // Read sensor data from MPU6050
   float ax, ay, az;
@@ -78,43 +70,8 @@ void loop() {
         }
       }
       
-      // Get GPS data
-      bool gpsFix = isValidLocation();
-      int satellites = getSatellites();
-      float latitude = getLatitude();
-      float longitude = getLongitude();
-      float altitude = getAltitude();
-      
-      // Get GPS status message
-      const char* gpsStatusMsg = getGPSStatusMessage();
-      int gpsStatus = getGPSStatus();
-      
-      // Send real GPS data with status message and status code
-      sendGPSData(gpsFix, satellites, latitude, longitude, altitude, gpsStatusMsg, gpsStatus);
-      
-      // Display appropriate status message based on GPS state
-      if (gpsStatus == 0) {
-        // GPS device not working
-        Serial.print("BLE: GPS Status [Code: 0] - ⚠️ GPS device not working - Check connections");
-        Serial.println();
-      } else if (gpsStatus == 1) {
-        // GPS no signal
-        Serial.print("BLE: GPS Status [Code: 1] - ⚠️ No GPS signal detected - Move to open area");
-        Serial.print(" (Satellites: ");
-        Serial.print(satellites);
-        Serial.println(")");
-      } else if (gpsStatus == 2) {
-        // GPS working
-        Serial.print("BLE: GPS Status [Code: 2] - ✓ GPS tracking active - Lat: ");
-        Serial.print(latitude, 6);
-        Serial.print(", Lng: ");
-        Serial.print(longitude, 6);
-        Serial.print(", Sats: ");
-        Serial.println(satellites);
-      }
-      
-      // Send device status (no WiFi status needed, use real GPS fix)
-      sendDeviceStatus(false, gpsFix, -1);
+      // Send device status
+      sendDeviceStatus(false, -1);
       Serial.println("BLE: Device status sent");
       
       Serial.println("---");
