@@ -10,6 +10,8 @@ import {
   Bluetooth,
   Bell,
   BellOff,
+  Search,
+  Settings,
 } from "@tamagui/lucide-icons";
 import React, { useState, useEffect } from "react";
 import {
@@ -20,8 +22,9 @@ import {
   Text,
   XStack,
   YStack,
+  Spinner,
 } from "tamagui";
-import { RefreshControl } from "react-native";
+import { RefreshControl, Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { authService } from "@/services/auth.service";
@@ -42,7 +45,24 @@ const home = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Crash detection setup
-  const { currentReading, isConnected } = useDevice();
+  const { 
+    currentReading, 
+    isConnected, 
+    isScanning,
+    scanForDevices,
+    connect,
+    disconnect,
+    requestPermissions: requestBLEPermissions,
+    checkPermissions: checkBLEPermissions,
+    enableBluetooth: enableBLE,
+    openSettings: openBLESettings,
+    getBluetoothState,
+  } = useDevice();
+  const [foundDevices, setFoundDevices] = useState<Array<{ id: string; name: string; rssi: number }>>([]);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [needsBluetoothPermission, setNeedsBluetoothPermission] = useState(false);
+  const [needsBluetoothEnabled, setNeedsBluetoothEnabled] = useState(false);
+  const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
   const { setLastCrashAlert } = useCrash();
   const { lastResult, isProcessing } = useCrashDetection(currentReading, {
     enabled: isConnected,
@@ -59,11 +79,13 @@ const home = () => {
   const { 
     pushToken, 
     isRegistered, 
-    isPeriodicActive, 
+    isPeriodicActive,
+    hasNotificationPermission,
     sendTestNotification,
     sendBackendTestNotification, 
     startPeriodicTest, 
     stopPeriodicTest,
+    requestNotificationPermission,
     isSendingBackendTest,
   } = useFCM();
 
@@ -76,6 +98,26 @@ const home = () => {
       return () => clearTimeout(timer);
     }
   }, [cooldownSeconds]);
+
+  // Check Bluetooth permissions and state on mount and when connection status changes
+  useEffect(() => {
+    const checkBluetoothStatus = async () => {
+      try {
+        const state = await getBluetoothState();
+        setNeedsBluetoothPermission(state.needsPermission);
+        setNeedsBluetoothEnabled(state.needsBluetooth);
+      } catch (error) {
+        console.error('Error checking Bluetooth status:', error);
+      }
+    };
+
+    checkBluetoothStatus();
+    
+    // Re-check when connection status changes
+    if (!isConnected) {
+      checkBluetoothStatus();
+    }
+  }, [isConnected, getBluetoothState]);
 
   const handleSendVerificationEmail = async () => {
     if (!user?.email) {
@@ -116,6 +158,142 @@ const home = () => {
       toast.showError("Refresh Failed", errorMessage);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleRequestPermissions = async () => {
+    setIsCheckingPermissions(true);
+    try {
+      const granted = await requestBLEPermissions();
+      if (granted) {
+        toast.showSuccess("Permissions Granted", "Bluetooth permissions have been granted");
+        setNeedsBluetoothPermission(false);
+        
+        // Re-check Bluetooth state
+        const state = await getBluetoothState();
+        setNeedsBluetoothEnabled(state.needsBluetooth);
+      } else {
+        toast.showWarning(
+          "Permissions Required",
+          "Bluetooth permissions are required to scan for devices. Please grant permissions in settings."
+        );
+        setNeedsBluetoothPermission(true);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to request permissions";
+      toast.showError("Permission Error", errorMessage);
+    } finally {
+      setIsCheckingPermissions(false);
+    }
+  };
+
+  const handleEnableBluetooth = async () => {
+    try {
+      await enableBLE();
+      toast.showInfo(
+        "Enable Bluetooth",
+        "Please enable Bluetooth in your device settings, then return to the app."
+      );
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to open Bluetooth settings";
+      toast.showError("Error", errorMessage);
+    }
+  };
+
+  const handleOpenSettings = async () => {
+    try {
+      await openBLESettings();
+      toast.showInfo(
+        "App Settings",
+        "Please grant Bluetooth permissions in app settings, then return to the app."
+      );
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to open settings";
+      toast.showError("Error", errorMessage);
+    }
+  };
+
+  const handleScanForDevices = async () => {
+    try {
+      // Check permissions first
+      const hasPermissions = await checkBLEPermissions();
+      if (!hasPermissions) {
+        toast.showWarning(
+          "Permissions Required",
+          "Bluetooth permissions are required. Please grant permissions first."
+        );
+        setNeedsBluetoothPermission(true);
+        return;
+      }
+
+      // Check if Bluetooth is enabled
+      const state = await getBluetoothState();
+      if (!state.isEnabled) {
+        toast.showWarning(
+          "Bluetooth Disabled",
+          "Please enable Bluetooth in your device settings first."
+        );
+        setNeedsBluetoothEnabled(true);
+        return;
+      }
+
+      toast.showInfo("Scanning", "Searching for Sentry devices...");
+      const devices = await scanForDevices(5);
+      setFoundDevices(devices);
+      if (devices.length === 0) {
+        // Check if BLE is available - if not, show helpful message
+        if (!isScanning) {
+          toast.showWarning(
+            "BLE Not Available", 
+            "Bluetooth requires a development build. Use: npx expo run:android (once, then use 'expo start' normally)"
+          );
+        } else {
+          toast.showWarning("No Devices Found", "Make sure your Sentry device is powered on and nearby");
+        }
+      } else {
+        toast.showSuccess("Scan Complete", `Found ${devices.length} device(s)`);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to scan for devices";
+      
+      // Check if it's a permission or Bluetooth error
+      if (errorMessage.includes('permission') || errorMessage.includes('Permission')) {
+        setNeedsBluetoothPermission(true);
+        toast.showError("Permissions Required", "Please grant Bluetooth permissions to scan for devices.");
+      } else if (errorMessage.includes('not enabled') || errorMessage.includes('Bluetooth')) {
+        setNeedsBluetoothEnabled(true);
+        toast.showError("Bluetooth Disabled", "Please enable Bluetooth in your device settings.");
+      } else {
+        toast.showError("Scan Failed", errorMessage);
+      }
+    }
+  };
+
+  const handleConnect = async (deviceId: string, deviceName: string) => {
+    setIsConnecting(true);
+    try {
+      const connected = await connect(deviceId);
+      if (connected) {
+        toast.showSuccess("Connected", `Successfully connected to ${deviceName}`);
+        setFoundDevices([]); // Clear the list after connection
+      } else {
+        toast.showError("Connection Failed", "Failed to connect to device. Please try again.");
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to connect to device";
+      toast.showError("Connection Failed", errorMessage);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+      toast.showSuccess("Disconnected", "Device disconnected successfully");
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to disconnect from device";
+      toast.showError("Disconnect Failed", errorMessage);
     }
   };
   
@@ -217,6 +395,101 @@ const home = () => {
         {/* Sensor Data Display */}
         <SensorDisplay sensorData={currentReading} isConnected={isConnected} />
 
+        {/* Bluetooth Permission Warning */}
+        {needsBluetoothPermission && (
+          <Card
+            elevate
+            bordered
+            borderColor={colors.red}
+            padded
+            gap={"$3"}
+            enterStyle={{ opacity: 0, y: 10 }}
+            animation={"bouncy"}
+            backgroundColor={colors.cardBackground}
+          >
+            <XStack gap={"$2"} alignItems="center">
+              <AlertTriangle color={colors.red} size={24} />
+              <Text color={colors.red} fontWeight="bold" fontSize={"$5"}>
+                Bluetooth Permission Required
+              </Text>
+            </XStack>
+            <Text color={colors.text} fontSize={"$4"}>
+              {Platform.OS === 'android' 
+                ? "This app needs Bluetooth and Location permissions to scan for Sentry devices. Location permission is required for BLE scanning on Android."
+                : "This app needs Bluetooth permissions to scan for Sentry devices."}
+            </Text>
+            <YStack gap={"$2"} marginTop={"$2"}>
+              <Button
+                backgroundColor={colors.primary}
+                onPress={handleRequestPermissions}
+                disabled={isCheckingPermissions}
+                opacity={isCheckingPermissions ? 0.6 : 1}
+              >
+                <XStack gap={"$2"} alignItems="center">
+                  {isCheckingPermissions ? (
+                    <Spinner size="small" color="#ffffff" />
+                  ) : (
+                    <Bluetooth size={16} color="#ffffff" />
+                  )}
+                  <Text color="#ffffff" fontWeight="semibold">
+                    {isCheckingPermissions ? "Requesting..." : "Grant Bluetooth Permission"}
+                  </Text>
+                </XStack>
+              </Button>
+              <Button
+                variant="outlined"
+                borderColor={colors.border}
+                borderWidth={1}
+                backgroundColor="transparent"
+                onPress={handleOpenSettings}
+              >
+                <XStack gap={"$2"} alignItems="center">
+                  <Settings size={16} color={colors.primary} />
+                  <Text color={colors.primary} fontWeight="semibold">
+                    Open App Settings
+                  </Text>
+                </XStack>
+              </Button>
+            </YStack>
+          </Card>
+        )}
+
+        {/* Bluetooth Disabled Warning */}
+        {needsBluetoothEnabled && !needsBluetoothPermission && (
+          <Card
+            elevate
+            bordered
+            borderColor={colors.red}
+            padded
+            gap={"$3"}
+            enterStyle={{ opacity: 0, y: 10 }}
+            animation={"bouncy"}
+            backgroundColor={colors.cardBackground}
+          >
+            <XStack gap={"$2"} alignItems="center">
+              <AlertTriangle color={colors.red} size={24} />
+              <Text color={colors.red} fontWeight="bold" fontSize={"$5"}>
+                Bluetooth is Disabled
+              </Text>
+            </XStack>
+            <Text color={colors.text} fontSize={"$4"}>
+              Please enable Bluetooth in your device settings to scan for Sentry devices.
+            </Text>
+            <Button
+              backgroundColor={colors.primary}
+              onPress={handleEnableBluetooth}
+              marginTop={"$2"}
+            >
+              <XStack gap={"$2"} alignItems="center">
+                <Bluetooth size={16} color="#ffffff" />
+                <Text color="#ffffff" fontWeight="semibold">
+                  Open Bluetooth Settings
+                </Text>
+              </XStack>
+            </Button>
+          </Card>
+        )}
+
         {/* Device Connection Card */}
         <Card
           elevate
@@ -243,33 +516,95 @@ const home = () => {
             </Text>
           </XStack>
 
-          <Button
-            variant={isConnected ? "outlined" : undefined}
-            backgroundColor={isConnected ? "transparent" : colors.primary}
-            borderColor={isConnected ? colors.red : undefined}
-            borderWidth={isConnected ? 1 : 0}
-            onPress={() => {
-              // TODO: Implement Bluetooth connect/disconnect
-              toast.showInfo(
-                "Bluetooth",
-                isConnected 
-                  ? "Feature coming soon: Will disconnect from device"
-                  : "Feature coming soon: Will scan and connect to device"
-              );
-            }}
-          >
-            <XStack gap={"$2"} alignItems="center">
-              <Bluetooth size={16} color={isConnected ? colors.red : "#ffffff"} />
-              <Text color={isConnected ? colors.red : "#ffffff"} fontWeight="semibold">
-                {isConnected ? "Disconnect Device" : "Connect Device"}
-              </Text>
-            </XStack>
-          </Button>
+          {!isConnected ? (
+            <>
+              <Button
+                backgroundColor={colors.primary}
+                onPress={handleScanForDevices}
+                disabled={isScanning || needsBluetoothPermission || needsBluetoothEnabled}
+                opacity={(isScanning || needsBluetoothPermission || needsBluetoothEnabled) ? 0.6 : 1}
+              >
+                <XStack gap={"$2"} alignItems="center">
+                  {isScanning ? (
+                    <Spinner size="small" color="#ffffff" />
+                  ) : (
+                    <Search size={16} color="#ffffff" />
+                  )}
+                  <Text color="#ffffff" fontWeight="semibold">
+                    {isScanning ? "Scanning..." : "Scan for Devices"}
+                  </Text>
+                </XStack>
+              </Button>
 
-          {!isConnected && (
-            <Text color={colors.gray[200]} fontSize={"$3"} textAlign="center">
-              Connect to your Sentry device via Bluetooth to receive sensor data
-            </Text>
+              {foundDevices.length > 0 && (
+                <YStack gap={"$2"} marginTop={"$2"}>
+                  <Text color={colors.text} fontSize={"$4"} fontWeight="600" marginBottom={"$2"}>
+                    Found Devices:
+                  </Text>
+                  {foundDevices.map((device) => (
+                    <Button
+                      key={device.id}
+                      variant="outlined"
+                      borderColor={colors.border}
+                      borderWidth={1}
+                      backgroundColor={colors.cardBackground}
+                      onPress={() => handleConnect(device.id, device.name)}
+                      disabled={isConnecting}
+                      opacity={isConnecting ? 0.6 : 1}
+                    >
+                      <XStack gap={"$3"} alignItems="center" justifyContent="space-between" width="100%">
+                        <XStack gap={"$2"} alignItems="center" flex={1}>
+                          <Bluetooth size={16} color={colors.primary} />
+                          <YStack flex={1}>
+                            <Text color={colors.text} fontWeight="600" fontSize={"$4"}>
+                              {device.name}
+                            </Text>
+                            <Text color={colors.gray[200]} fontSize={"$2"}>
+                              RSSI: {device.rssi} dBm
+                            </Text>
+                          </YStack>
+                        </XStack>
+                        {isConnecting ? (
+                          <Spinner size="small" color={colors.primary} />
+                        ) : (
+                          <Text color={colors.primary} fontWeight="semibold">
+                            Connect
+                          </Text>
+                        )}
+                      </XStack>
+                    </Button>
+                  ))}
+                </YStack>
+              )}
+
+              {!isScanning && foundDevices.length === 0 && (
+                <Text color={colors.gray[200]} fontSize={"$3"} textAlign="center">
+                  Tap "Scan for Devices" to find your Sentry device
+                </Text>
+              )}
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outlined"
+                backgroundColor="transparent"
+                borderColor={colors.red}
+                borderWidth={1}
+                onPress={handleDisconnect}
+                disabled={isConnecting}
+                opacity={isConnecting ? 0.6 : 1}
+              >
+                <XStack gap={"$2"} alignItems="center">
+                  <Bluetooth size={16} color={colors.red} />
+                  <Text color={colors.red} fontWeight="semibold">
+                    Disconnect Device
+                  </Text>
+                </XStack>
+              </Button>
+              <Text color={colors.green[500]} fontSize={"$3"} textAlign="center" fontWeight="600">
+                ✓ Connected to device. Receiving sensor data...
+              </Text>
+            </>
           )}
         </Card>
 
@@ -297,6 +632,45 @@ const home = () => {
           </Text>
 
           <YStack gap={"$3"}>
+            {/* Permission Warning */}
+            {!hasNotificationPermission && !isRegistered && (
+              <Card
+                bordered
+                borderColor={colors.red}
+                backgroundColor={colors.cardBackground}
+                padding={"$3"}
+                marginBottom={"$2"}
+              >
+                <XStack gap={"$2"} alignItems="center" marginBottom={"$2"}>
+                  <AlertTriangle color={colors.red} size={20} />
+                  <Text color={colors.red} fontWeight="bold" fontSize={"$4"}>
+                    Notification Permission Required
+                  </Text>
+                </XStack>
+                <Text color={colors.text} fontSize={"$3"} marginBottom={"$2"}>
+                  Please grant notification permission to receive crash alerts and test notifications.
+                </Text>
+                <Button
+                  backgroundColor={colors.primary}
+                  onPress={async () => {
+                    const granted = await requestNotificationPermission();
+                    if (granted) {
+                      toast.showSuccess("Permission Granted", "Notification permission has been granted.");
+                    } else {
+                      toast.showError("Permission Denied", "Please enable notifications in app settings.");
+                    }
+                  }}
+                >
+                  <XStack gap={"$2"} alignItems="center">
+                    <Bell size={16} color="#ffffff" />
+                    <Text color="#ffffff" fontWeight="semibold">
+                      Grant Notification Permission
+                    </Text>
+                  </XStack>
+                </Button>
+              </Card>
+            )}
+
             {/* Token Status */}
             <XStack justifyContent="space-between" paddingBottom={"$2"}>
               <Text color={colors.text} fontSize={"$4"} fontWeight="600">

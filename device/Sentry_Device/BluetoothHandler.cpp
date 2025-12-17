@@ -166,7 +166,9 @@ void initBluetooth(const char* deviceName) {
   BLEDevice::init(deviceName);
   
   // Request larger MTU for better throughput
-  // This must be called before creating the server
+  // Without this, BLE defaults to 20-byte MTU which truncates JSON data
+  // This prevents the issue where only {"type":"sensor_data was being received
+  // Must be called after BLEDevice::init() but before creating server
   BLEDevice::setMTU(BLE_MTU_REQUEST);
   Serial.print("BLE: MTU requested: ");
   Serial.println(BLE_MTU_REQUEST);
