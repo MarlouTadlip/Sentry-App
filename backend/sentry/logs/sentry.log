@@ -1358,3 +1358,7 @@ INFO 2025-12-18 01:58:57 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\b
 INFO 2025-12-18 01:58:59 autoreload Watching for file changes with StatReloader
 INFO 2025-12-18 01:59:07 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\sentry\settings\config.py changed, reloading.
 INFO 2025-12-18 01:59:09 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 02:06:03 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\device\models\crash_event.py changed, reloading.
+INFO 2025-12-18 02:06:04 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 02:06:13 autoreload C:\Users\tadli\OneDrive\Desktop\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 02:06:14 autoreload Watching for file changes with StatReloader
