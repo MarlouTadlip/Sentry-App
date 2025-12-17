@@ -1148,3 +1148,88 @@ INFO 2025-12-17 14:06:26 autoreload D:\User Folder\Magus Files\RRA Personal Fold
 INFO 2025-12-17 14:06:44 autoreload Watching for file changes with StatReloader
 INFO 2025-12-17 15:08:32 autoreload D:\User Folder\Magus Files\RRA Personal Folder\HelloWorld\React Native\Sentry\Sentry-App\backend\sentry\device\router\mobile_router.py changed, reloading.
 INFO 2025-12-17 15:09:18 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:32:34 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:41:57 log "GET /api/docs/ HTTP/1.1" 200 697
+INFO 2025-12-17 16:41:57 log "GET /static/ninja/swagger-ui.css HTTP/1.1" 304 0
+INFO 2025-12-17 16:41:57 log "GET /static/ninja/swagger-ui-bundle.js HTTP/1.1" 304 0
+INFO 2025-12-17 16:41:57 log "GET /static/ninja/swagger-ui-init.js HTTP/1.1" 304 0
+INFO 2025-12-17 16:41:57 log "GET /static/ninja/favicon.png HTTP/1.1" 304 0
+INFO 2025-12-17 16:41:57 log "GET /api/openapi.json/ HTTP/1.1" 200 15367
+INFO 2025-12-17 16:43:12 log "POST /api/v1/core/auth/login HTTP/1.1" 200 432
+INFO 2025-12-17 16:43:14 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 16:43:14 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 16:45:08 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 16:45:09 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 16:45:29 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 16:45:31 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 16:46:44 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 16:46:45 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 16:49:55 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:50:03 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:50:16 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:50:18 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:50:25 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:50:28 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:50:47 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:50:49 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:51:48 autoreload D:\Projects\Sentry-App\backend\sentry\sentry\settings\config.py changed, reloading.
+INFO 2025-12-17 16:51:56 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:52:06 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:52:09 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:52:15 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:52:18 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:52:24 autoreload D:\Projects\Sentry-App\backend\sentry\sentry\settings\config.py changed, reloading.
+INFO 2025-12-17 16:52:27 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:52:57 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:52:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:55:11 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:55:59 autoreload D:\Projects\Sentry-App\backend\sentry\sentry\settings\config.py changed, reloading.
+INFO 2025-12-17 16:56:02 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 16:58:07 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 16:58:09 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:00:03 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:00:06 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:00:26 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:00:29 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:01:00 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:01:03 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:01:17 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:01:20 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:01:27 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:01:30 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:02:18 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:02:22 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:02:28 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\fcm_controller.py changed, reloading.
+INFO 2025-12-17 17:02:31 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:02:43 autoreload D:\Projects\Sentry-App\backend\sentry\device\schemas\fcm_schema.py changed, reloading.
+INFO 2025-12-17 17:02:48 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:04:51 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:04:54 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:05:00 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\fcm_controller.py changed, reloading.
+INFO 2025-12-17 17:05:03 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:05:12 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:05:15 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:05:56 autoreload D:\Projects\Sentry-App\backend\sentry\device\router\mobile_router.py changed, reloading.
+INFO 2025-12-17 17:05:58 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:06:09 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 17:06:11 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 17:33:55 log "POST /api/v1/core/auth/login HTTP/1.1" 200 432
+INFO 2025-12-17 17:33:56 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 17:33:58 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 17:46:02 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:46:16 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:49:39 log "POST /api/v1/core/auth/login HTTP/1.1" 200 432
+INFO 2025-12-17 17:49:41 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 17:49:41 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 17:49:47 log "POST /api/v1/device/mobile/fcm/token HTTP/1.1" 200 65
+INFO 2025-12-17 17:49:58 log "POST /api/v1/device/mobile/fcm/test HTTP/1.1" 200 97
+INFO 2025-12-17 17:51:11 log "POST /api/v1/device/mobile/fcm/test HTTP/1.1" 200 97
+INFO 2025-12-17 17:53:02 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:53:10 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:53:20 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:53:23 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:53:31 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:53:33 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 17:53:43 log "POST /api/v1/device/mobile/fcm/test HTTP/1.1" 200 67
+INFO 2025-12-17 17:59:31 autoreload D:\Projects\Sentry-App\backend\sentry\device\services\fcm_service.py changed, reloading.
+INFO 2025-12-17 17:59:39 autoreload Watching for file changes with StatReloader

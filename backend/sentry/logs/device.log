@@ -111,3 +111,8 @@ INFO 2025-12-16 02:23:18 device_controller Device data: None, ax=-0.435847, ay=-
 INFO 2025-12-16 02:23:20 device_controller Device data: None, ax=-0.435233, ay=-0.005066, az=-0.218622, roll=-178.6726, pitch=63.32298, tilt_detected=True
 INFO 2025-12-16 02:23:25 device_controller Device data: None, ax=-0.435768, ay=-0.006452, az=-0.219952, roll=-178.3197, pitch=63.20795, tilt_detected=True
 INFO 2025-12-16 23:08:45 device_controller Device data: string, ax=2.0, ay=3.0, az=1.0, roll=1.0, pitch=1.0, tilt_detected=True
+INFO 2025-12-17 17:49:47 fcm_controller FCM token registered for device V2038 (platform: android, user: 1)
+ERROR 2025-12-17 17:49:58 fcm_service Failed to send Expo push notification: {'data': {'status': 'ok', 'id': '019b2bb7-67e6-74d4-b4e0-8c878598b891'}}
+ERROR 2025-12-17 17:51:11 fcm_service Failed to send Expo push notification: {'data': {'status': 'ok', 'id': '019b2bb8-8587-7316-ae30-313cb9756b05'}}
+INFO 2025-12-17 17:53:43 fcm_service Expo push notification sent successfully for device V2038
+INFO 2025-12-17 17:53:43 fcm_controller Test notification sent successfully to user 1

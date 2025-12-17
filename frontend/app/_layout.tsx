@@ -14,7 +14,7 @@ import config from "../tamagui.config";
 
 function ThemedApp() {
   const { activeTheme } = useThemeContext();
-
+  console.log('🚀 App starting...');
   return (
     <TamaguiProvider config={config} defaultTheme={activeTheme}>
       <DeviceProvider>

@@ -41,7 +41,7 @@ app-example
 
 # generated native folders
 /ios
-/android
+frontend/android/
 
 
 # ============= DJANGO / PYTHON =============

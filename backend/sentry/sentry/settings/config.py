@@ -120,10 +120,15 @@ class Settings(BaseSettings):
         default=30,
         description="Number of seconds of sensor data to analyze",
     )
-    # FCM settings
+    # Push notification settings (Expo)
+    expo_push_api_url: str = Field(
+        default="https://exp.host/--/api/v2/push/send",
+        description="Expo Push Notification API endpoint URL",
+    )
+    # FCM settings (deprecated - using Expo Push API now)
     fcm_credentials_path: str | None = Field(
         default=None,
-        description="Path to Firebase service account JSON file",
+        description="Path to Firebase service account JSON file (deprecated - not used with Expo Push API)",
     )
     # Crash detection settings
     crash_confidence_threshold: float = Field(

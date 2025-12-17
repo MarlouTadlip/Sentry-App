@@ -14,6 +14,7 @@ export function useFCM() {
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isPeriodicActive, setIsPeriodicActive] = useState(false);
+  const [isSendingBackendTest, setIsSendingBackendTest] = useState(false);
   const notificationListener = useRef<ReturnType<typeof notificationService.setupNotificationListeners>>();
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function useFCM() {
         setPushToken(token);
         setIsRegistered(true);
         
-        // Send token to backend
+        // Send token to backend (only if token was successfully obtained)
         try {
           const deviceId = Device.modelName || Device.osName || 'unknown';
           await deviceApi.post('/mobile/fcm/token', {
@@ -34,10 +35,14 @@ export function useFCM() {
           });
           console.log('✅ FCM token registered with backend');
         } catch (error: any) {
-          console.error('❌ Failed to register FCM token:', error?.response?.data || error?.message);
+          console.error('❌ Failed to register FCM token with backend:', error?.response?.data || error?.message);
           // Don't fail silently - token is still valid for local notifications
           // The endpoint might not exist yet, which is okay for testing
         }
+      } else {
+        // Token not available (likely FCM not configured on Android)
+        // This is okay - local notifications will still work
+        console.log('ℹ️ Push token not available - local notifications will still work');
       }
     };
 
@@ -75,6 +80,20 @@ export function useFCM() {
     });
   };
 
+  const sendBackendTestNotification = async (): Promise<{ success: boolean; message: string }> => {
+    setIsSendingBackendTest(true);
+    try {
+      const response = await deviceApi.post('/mobile/fcm/test');
+      console.log('✅ Backend test notification sent:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Failed to send backend test notification:', error?.response?.data || error?.message);
+      throw error;
+    } finally {
+      setIsSendingBackendTest(false);
+    }
+  };
+
   const startPeriodicTest = async (intervalSeconds: number = 5) => {
     const id = await notificationService.startPeriodicNotifications(intervalSeconds);
     if (id) {
@@ -92,8 +111,10 @@ export function useFCM() {
     isRegistered,
     isPeriodicActive,
     sendTestNotification,
+    sendBackendTestNotification,
     startPeriodicTest,
     stopPeriodicTest,
+    isSendingBackendTest,
   };
 }
 

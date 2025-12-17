@@ -14,5 +14,15 @@ class FCMTokenRequest(BaseModel):
 class FCMTokenResponse(BaseModel):
     """Response schema for FCM token registration."""
 
+    success: bool = Field(..., description="Whether the operation was successful")
+    message: str = Field(..., description="Response message")
+
+
+class TestNotificationResponse(BaseModel):
+    """Response schema for test notification."""
+
+    success: bool = Field(..., description="Whether the notification was sent successfully")
+    message: str = Field(..., description="Response message")
+
     success: bool = Field(..., description="Whether the registration was successful")
     message: str = Field(..., description="Response message")

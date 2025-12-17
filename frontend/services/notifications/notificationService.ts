@@ -49,6 +49,13 @@ class NotificationService {
   /**
    * Get Expo Push Token (this works with Firebase backend)
    * The backend can use this token to send notifications via Firebase
+   * 
+   * Note: For Android, FCM credentials must be configured.
+   * See: https://docs.expo.dev/push-notifications/fcm-credentials/
+   * 
+   * Options:
+   * 1. Use EAS Build (handles FCM automatically)
+   * 2. Configure FCM credentials manually following the guide above
    */
   async getPushToken(): Promise<string | null> {
     const hasPermission = await this.requestPermissions();
@@ -72,8 +79,20 @@ class NotificationService {
       
       console.log('✅ Expo Push Token:', tokenData.data);
       return tokenData.data;
-    } catch (error) {
-      console.error('❌ Error getting push token:', error);
+    } catch (error: any) {
+      // Handle FCM configuration error specifically
+      const errorMessage = error?.message || String(error);
+      if (errorMessage.includes('FirebaseApp') || errorMessage.includes('FCM')) {
+        console.warn(
+          '⚠️ Push notifications not configured for Android.\n' +
+          'To enable push notifications:\n' +
+          '1. Use EAS Build (recommended): npx eas build --platform android\n' +
+          '2. Or configure FCM credentials manually: https://docs.expo.dev/push-notifications/fcm-credentials/\n' +
+          'Local notifications will still work without push token.'
+        );
+      } else {
+        console.error('❌ Error getting push token:', error);
+      }
       return null;
     }
   }
@@ -117,6 +136,7 @@ class NotificationService {
           sound: true,
         },
         trigger: {
+          type: 'timeInterval',
           seconds: intervalSeconds,
           repeats: true,
         },

@@ -7,7 +7,8 @@ from django.http import HttpRequest
 from ninja.errors import HttpError
 
 from device.models import DeviceToken
-from device.schemas.fcm_schema import FCMTokenRequest, FCMTokenResponse
+from device.schemas.fcm_schema import FCMTokenRequest, FCMTokenResponse, TestNotificationResponse
+from device.services.fcm_service import FCMService
 
 logger = logging.getLogger("device")
 
@@ -67,3 +68,62 @@ def register_fcm_token(
     except Exception:
         logger.exception("Error registering FCM token")
         raise HttpError(status_code=500, message="Failed to register FCM token") from None
+
+
+def send_test_notification(request: HttpRequest) -> TestNotificationResponse:
+    """Send a test push notification to the authenticated user's device.
+
+    Args:
+        request: HTTP request object (should have authenticated user)
+
+    Returns:
+        TestNotificationResponse with success status
+
+    Raises:
+        HttpError: If sending fails
+
+    """
+    try:
+        user = request.user if hasattr(request, "user") and request.user.is_authenticated else None  # type: ignore[attr-defined]
+
+        if not user:
+            raise HttpError(status_code=401, message="Authentication required")
+
+        # Get the device token for the current user
+        # We'll use the most recent active token
+        device_token = DeviceToken.objects.filter(  # type: ignore[attr-defined]
+            user=user,
+            is_active=True,
+        ).order_by("-updated_at").first()
+
+        if not device_token:
+            return TestNotificationResponse(
+                success=False,
+                message="No active push token found for your device. Please ensure notifications are enabled in the app.",
+            )
+
+        # Send test notification
+        fcm_service = FCMService()
+        success = fcm_service.send_test_notification(
+            device_id=device_token.device_id,  # type: ignore[attr-defined]
+            title="🧪 Test Push Notification",
+            body="This is a test notification sent from the backend to verify FCM is working correctly!",
+        )
+
+        if success:
+            logger.info("Test notification sent successfully to user %s", user.id)  # type: ignore[attr-defined]
+            return TestNotificationResponse(
+                success=True,
+                message="Test notification sent successfully",
+            )
+
+        return TestNotificationResponse(
+            success=False,
+            message="Failed to send test notification. Check server logs for details.",
+        )
+
+    except HttpError:
+        raise
+    except Exception:
+        logger.exception("Error sending test notification")
+        raise HttpError(status_code=500, message="Failed to send test notification") from None

@@ -76,7 +76,7 @@ const login = () => {
   const handleSubmit = async () => {
     const usernameOrEmailError = validateUsernameOrEmail(usernameOrEmail);
     const passwordError = validatePassword(password);
-
+    
     if (usernameOrEmailError || passwordError) {
       setErrors({
         usernameOrEmail: usernameOrEmailError,
@@ -95,13 +95,32 @@ const login = () => {
         password,
       };
 
+      console.log('🔐 Login attempt started', {
+        apiUrl: API_URL,
+        isEmail,
+        usernameOrEmail,
+        rememberMe,
+      });
+
       // Pass rememberMe to the login function
       await login(credentials, rememberMe);
+      
+      console.log('✅ Login successful', {
+        apiUrl: API_URL,
+        usernameOrEmail,
+      });
+      
       toast.showSuccess("Success!", "Logged in successfully");
       // Navigate to home tab
       router.replace("/(tabs)/home");
     } catch (error: any) {
       const errorMessage = extractErrorMessage(error);
+      console.error('❌ Login failed', {
+        apiUrl: API_URL,
+        usernameOrEmail,
+        error: errorMessage,
+        errorDetails: error,
+      });
       toast.showError("Login Failed", errorMessage);
     } finally {
       setIsLoading(false);

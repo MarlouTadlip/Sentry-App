@@ -60,9 +60,11 @@ const home = () => {
     pushToken, 
     isRegistered, 
     isPeriodicActive, 
-    sendTestNotification, 
+    sendTestNotification,
+    sendBackendTestNotification, 
     startPeriodicTest, 
-    stopPeriodicTest 
+    stopPeriodicTest,
+    isSendingBackendTest,
   } = useFCM();
 
   // Cooldown timer effect
@@ -350,7 +352,7 @@ const home = () => {
               </XStack>
             </Button>
 
-            {/* Single Test Notification Button */}
+            {/* Single Local Test Notification Button */}
             <Button
               variant="outlined"
               borderColor={colors.border}
@@ -361,10 +363,46 @@ const home = () => {
               <XStack gap={"$2"} alignItems="center">
                 <Bell size={16} color={colors.primary} />
                 <Text color={colors.primary} fontWeight="semibold">
-                  Send Test Notification (Once)
+                  Send Local Test Notification
                 </Text>
               </XStack>
             </Button>
+
+            {/* Backend FCM Test Notification Button */}
+            <Button
+              variant="outlined"
+              borderColor={colors.primary}
+              borderWidth={2}
+              backgroundColor={isSendingBackendTest ? colors.gray[100] : "transparent"}
+              onPress={async () => {
+                try {
+                  const result = await sendBackendTestNotification();
+                  if (result.success) {
+                    toast.showSuccess("Test Sent", "Backend push notification sent successfully! Check your device.");
+                  } else {
+                    toast.showError("Test Failed", result.message || "Failed to send test notification");
+                  }
+                } catch (error: any) {
+                  const errorMessage = error?.response?.data?.message || error?.message || "Failed to send test notification";
+                  toast.showError("Test Failed", errorMessage);
+                }
+              }}
+              disabled={isSendingBackendTest || !isRegistered}
+              opacity={(!isRegistered || isSendingBackendTest) ? 0.6 : 1}
+            >
+              <XStack gap={"$2"} alignItems="center">
+                <Bell size={16} color={colors.primary} />
+                <Text color={colors.primary} fontWeight="semibold">
+                  {isSendingBackendTest ? "Sending..." : "Test Backend FCM Push"}
+                </Text>
+              </XStack>
+            </Button>
+
+            {!isRegistered && (
+              <Text color={colors.red} fontSize={"$3"} textAlign="center" fontWeight="600">
+                ⚠️ Push token not registered. Please ensure notifications are enabled.
+              </Text>
+            )}
 
             {isPeriodicActive && (
               <Text color={colors.green[500]} fontSize={"$3"} textAlign="center" fontWeight="600">
