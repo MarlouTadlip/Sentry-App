@@ -7,6 +7,7 @@ import {
   Shield,
   Mail,
   RefreshCw,
+  Bluetooth,
 } from "@tamagui/lucide-icons";
 import React, { useState, useEffect } from "react";
 import {
@@ -22,6 +23,12 @@ import { RefreshControl } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { authService } from "@/services/auth.service";
+import { useDevice } from "@/context/DeviceContext";
+import { useCrash } from "@/context/CrashContext";
+import { useCrashDetection } from "@/hooks/useCrashDetection";
+import { SensorDisplay } from "@/components/device/SensorDisplay";
+import { CrashIndicator } from "@/components/crash/CrashIndicator";
+import { CrashAlert } from "@/components/crash/CrashAlert";
 
 const home = () => {
   const colors = useThemeColors();
@@ -30,6 +37,20 @@ const home = () => {
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Crash detection setup
+  const { currentReading, isConnected } = useDevice();
+  const { setLastCrashAlert } = useCrash();
+  const { lastResult, isProcessing } = useCrashDetection(currentReading, {
+    enabled: isConnected,
+    onThresholdExceeded: (result) => {
+      setLastCrashAlert(result);
+      toast.showWarning(
+        "Crash Detected",
+        `Threshold exceeded: ${result.severity} severity`
+      );
+    },
+  });
 
   // Cooldown timer effect
   useEffect(() => {
@@ -167,6 +188,76 @@ const home = () => {
           </Card>
         )}
 
+        {/* Crash Detection Status */}
+        <CrashIndicator 
+          isActive={lastResult?.isTriggered || false} 
+          severity={lastResult?.severity}
+        />
+
+        {/* Crash Alert (shown when threshold exceeded) */}
+        {lastResult?.isTriggered && lastResult && (
+          <CrashAlert thresholdResult={lastResult} />
+        )}
+
+        {/* Sensor Data Display */}
+        <SensorDisplay sensorData={currentReading} isConnected={isConnected} />
+
+        {/* Device Connection Card */}
+        <Card
+          elevate
+          bordered
+          borderColor={isConnected ? colors.green[500] : colors.border}
+          padded
+          gap={"$4"}
+          enterStyle={{ opacity: 0, y: 10 }}
+          opacity={1}
+          animation={"bouncy"}
+          backgroundColor={colors.cardBackground}
+        >
+          <XStack gap={"$2"} alignItems="center" marginBottom={"$2"}>
+            <Bluetooth color={isConnected ? colors.green[500] : colors.gray[200]} />
+            <Text color={colors.text} fontSize={"$5"} fontWeight="bold">
+              Device Connection
+            </Text>
+          </XStack>
+
+          <XStack justifyContent="space-between" marginBottom={"$2"}>
+            <Text color={colors.text}>Bluetooth Status:</Text>
+            <Text color={isConnected ? colors.green[500] : colors.red} fontWeight="bold">
+              {isConnected ? "Connected" : "Disconnected"}
+            </Text>
+          </XStack>
+
+          <Button
+            variant={isConnected ? "outlined" : undefined}
+            backgroundColor={isConnected ? "transparent" : colors.primary}
+            borderColor={isConnected ? colors.red : undefined}
+            borderWidth={isConnected ? 1 : 0}
+            onPress={() => {
+              // TODO: Implement Bluetooth connect/disconnect
+              toast.showInfo(
+                "Bluetooth",
+                isConnected 
+                  ? "Feature coming soon: Will disconnect from device"
+                  : "Feature coming soon: Will scan and connect to device"
+              );
+            }}
+          >
+            <XStack gap={"$2"} alignItems="center">
+              <Bluetooth size={16} color={isConnected ? colors.red : "#ffffff"} />
+              <Text color={isConnected ? colors.red : "#ffffff"} fontWeight="semibold">
+                {isConnected ? "Disconnect Device" : "Connect Device"}
+              </Text>
+            </XStack>
+          </Button>
+
+          {!isConnected && (
+            <Text color={colors.gray[200]} fontSize={"$3"} textAlign="center">
+              Connect to your Sentry device via Bluetooth to receive sensor data
+            </Text>
+          )}
+        </Card>
+
         <Card
           elevate
           bordered
@@ -184,98 +275,118 @@ const home = () => {
           </XStack>
 
           <XStack justifyContent="space-between">
-            <Text color={colors.text}>Riding Status</Text>
-            <Text color={colors.text}>Idle</Text>
+            <Text color={colors.text}>Device Connection</Text>
+            <Text color={isConnected ? colors.green[500] : colors.red}>
+              {isConnected ? "Connected" : "Disconnected"}
+            </Text>
           </XStack>
           <XStack justifyContent="space-between">
-            <Text color={colors.text}>Current Speed</Text>
-            <Text color={colors.text}>0 km/h</Text>
+            <Text color={colors.text}>Crash Detection</Text>
+            <Text color={isProcessing ? colors.emerald[500] : colors.green[500]}>
+              {isProcessing ? "Processing..." : "Active"}
+            </Text>
           </XStack>
-
           <XStack justifyContent="space-between">
             <Text color={colors.text}>AI Detection</Text>
-            <Text color={colors.text}>Active</Text>
-          </XStack>
-
-          <XStack justifyContent="flex-end">
-            <Text color={colors.text}>Last update: </Text>
+            <Text color={colors.text}>Phase 2 (Pending)</Text>
           </XStack>
         </Card>
 
-        <Card
-          elevate
-          bordered
-          borderColor={colors.border}
-          padded
-          gap={"$4"}
-          enterStyle={{ opacity: 0, y: 10 }}
-          opacity={1}
-          y={0}
-          animation={"bouncy"}
-          backgroundColor={colors.cardBackground}
-        >
-          <XStack gap={"$2"} alignItems="center">
-            <Activity color={colors.primary} />
-            <Text color={colors.text}>Real-Time Monitoring</Text>
-          </XStack>
+        {/* Real-Time Monitoring Card - Shows G-force and tilt if sensor data available */}
+        {currentReading && (
+          <Card
+            elevate
+            bordered
+            borderColor={colors.border}
+            padded
+            gap={"$4"}
+            enterStyle={{ opacity: 0, y: 10 }}
+            opacity={1}
+            y={0}
+            animation={"bouncy"}
+            backgroundColor={colors.cardBackground}
+          >
+            <XStack gap={"$2"} alignItems="center">
+              <Activity color={colors.primary} />
+              <Text color={colors.text}>Real-Time Monitoring</Text>
+            </XStack>
 
-          <XStack gap={"$2"} alignItems="center" justifyContent="center">
-            <Square
-              backgroundColor={colors.background}
-              paddingEnd={"$8"}
-              padded
-              radiused
-              borderColor={colors.borderHover}
-              bordered
-            >
-              <YStack gap={"$2"}>
-                <Text color={colors.text}>Acceleration</Text>
-                <Text color={colors.text}>Normal</Text>
-              </YStack>
-            </Square>
-            <Square
-              backgroundColor={colors.background}
-              paddingEnd={"$8"}
-              padded
-              radiused
-              borderColor={colors.borderHover}
-              bordered
-            >
-              <YStack gap={"$2"}>
-                <Text color={colors.text}>Gyroscope</Text>
-                <Text color={colors.text}>Stable</Text>
-              </YStack>
-            </Square>
-          </XStack>
-          <XStack gap={"$2"} alignItems="center" justifyContent="center">
-            <Square
-              backgroundColor={colors.background}
-              paddingEnd={"$8"}
-              padded
-              radiused
-              borderColor={colors.borderHover}
-              bordered
-            >
-              <YStack gap={"$2"}>
-                <Text color={colors.text}>Impact Level</Text>
-                <Text color={colors.text}>Low</Text>
-              </YStack>
-            </Square>
-            <Square
-              backgroundColor={colors.background}
-              paddingEnd={"$8"}
-              padded
-              radiused
-              borderColor={colors.borderHover}
-              bordered
-            >
-              <YStack gap={"$2"}>
-                <Text color={colors.text}>GPS Signal</Text>
-                <Text color={colors.text}>Strong</Text>
-              </YStack>
-            </Square>
-          </XStack>
-        </Card>
+            <XStack gap={"$2"} alignItems="center" justifyContent="center">
+              <Square
+                backgroundColor={colors.background}
+                paddingEnd={"$8"}
+                padded
+                radiused
+                borderColor={colors.borderHover}
+                bordered
+              >
+                <YStack gap={"$2"}>
+                  <Text color={colors.text}>G-Force</Text>
+                  <Text color={colors.text}>
+                    {currentReading
+                      ? (
+                          Math.sqrt(
+                            currentReading.ax ** 2 +
+                              currentReading.ay ** 2 +
+                              currentReading.az ** 2
+                          ) / 9.81
+                        ).toFixed(2) + "g"
+                      : "N/A"}
+                  </Text>
+                </YStack>
+              </Square>
+              <Square
+                backgroundColor={colors.background}
+                paddingEnd={"$8"}
+                padded
+                radiused
+                borderColor={colors.borderHover}
+                bordered
+              >
+                <YStack gap={"$2"}>
+                  <Text color={colors.text}>Tilt</Text>
+                  <Text color={colors.text}>
+                    {currentReading
+                      ? `R: ${currentReading.roll.toFixed(1)}°`
+                      : "N/A"}
+                  </Text>
+                </YStack>
+              </Square>
+            </XStack>
+            <XStack gap={"$2"} alignItems="center" justifyContent="center">
+              <Square
+                backgroundColor={colors.background}
+                paddingEnd={"$8"}
+                padded
+                radiused
+                borderColor={colors.borderHover}
+                bordered
+              >
+                <YStack gap={"$2"}>
+                  <Text color={colors.text}>Impact Level</Text>
+                  <Text color={lastResult?.severity === "high" ? colors.red : lastResult?.severity === "medium" ? colors.emerald[500] : colors.green[500]}>
+                    {lastResult?.severity ? lastResult.severity.toUpperCase() : "Normal"}
+                  </Text>
+                </YStack>
+              </Square>
+              <Square
+                backgroundColor={colors.background}
+                paddingEnd={"$8"}
+                padded
+                radiused
+                borderColor={colors.borderHover}
+                bordered
+              >
+                <YStack gap={"$2"}>
+                  <Text color={colors.text}>Status</Text>
+                  <Text color={isProcessing ? colors.emerald[500] : colors.text}>
+                    {isProcessing ? "Analyzing..." : "Monitoring"}
+                  </Text>
+                </YStack>
+              </Square>
+            </XStack>
+          </Card>
+        )}
 
         <Card
           elevate

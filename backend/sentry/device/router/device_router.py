@@ -6,6 +6,7 @@ from ninja import Router
 
 from device.controllers.device_controller import receive_device_data
 from device.schemas import DeviceDataRequest, DeviceDataResponse
+from device.router.crash_router import crash_router
 
 device_router = Router(tags=["device"], auth=DeviceAPIKeyAuth())
 
@@ -20,3 +21,7 @@ def receive_device_data_endpoint(
     URL (once wired into v1): /api/v1/device/data
     """
     return receive_device_data(request, payload)
+
+
+# Register crash router
+device_router.add_router("crash", crash_router)

@@ -20,6 +20,7 @@
     "@tanstack/react-query": "^5.90.12",
     "axios": "^1.13.2",
     "expo": "~54.0.29",
+    "expo-bluetooth": "^0.0.0",
     "expo-constants": "~18.0.12",
     "expo-font": "~14.0.10",
     "expo-haptics": "~15.0.8",

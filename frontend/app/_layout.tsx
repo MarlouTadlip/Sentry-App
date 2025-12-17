@@ -7,6 +7,8 @@ import { queryClient } from "../lib/queryClient";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider, useThemeContext } from "../context/ThemeContext";
 import { ToastProvider } from "../context/ToastContext";
+import { DeviceProvider } from "../context/DeviceContext";
+import { CrashProvider } from "../context/CrashContext";
 import { ToastContainer } from "../components/ToastContainer";
 import config from "../tamagui.config";
 
@@ -15,10 +17,14 @@ function ThemedApp() {
 
   return (
     <TamaguiProvider config={config} defaultTheme={activeTheme}>
-      <ToastProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-        <ToastContainer />
-      </ToastProvider>
+      <DeviceProvider>
+        <CrashProvider>
+          <ToastProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+            <ToastContainer />
+          </ToastProvider>
+        </CrashProvider>
+      </DeviceProvider>
     </TamaguiProvider>
   );
 }
