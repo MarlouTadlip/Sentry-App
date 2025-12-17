@@ -24,7 +24,8 @@ import {
   YStack,
   Spinner,
 } from "tamagui";
-import { RefreshControl, Platform } from "react-native";
+import { RefreshControl, Platform, View, StyleSheet } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { authService } from "@/services/auth.service";
@@ -46,7 +47,8 @@ const home = () => {
   
   // Crash detection setup
   const { 
-    currentReading, 
+    currentReading,
+    currentGPSData,
     isConnected, 
     isScanning,
     scanForDevices,
@@ -63,7 +65,7 @@ const home = () => {
   const [needsBluetoothPermission, setNeedsBluetoothPermission] = useState(false);
   const [needsBluetoothEnabled, setNeedsBluetoothEnabled] = useState(false);
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(false);
-  const { setLastCrashAlert } = useCrash();
+  const { setLastCrashAlert, aiResponse, isProcessing: isCrashProcessing } = useCrash();
   const { lastResult, isProcessing } = useCrashDetection(currentReading, {
     enabled: isConnected,
     onThresholdExceeded: (result) => {
@@ -72,6 +74,19 @@ const home = () => {
         "Crash Detected",
         `Threshold exceeded: ${result.severity} severity`
       );
+    },
+    onAIConfirmation: (confirmed) => {
+      if (confirmed) {
+        toast.showError(
+          "Crash Confirmed",
+          "AI analysis confirmed a crash occurred"
+        );
+      } else {
+        toast.showSuccess(
+          "False Alarm",
+          "AI analysis indicates no crash occurred"
+        );
+      }
     },
   });
 
@@ -389,7 +404,11 @@ const home = () => {
 
         {/* Crash Alert (shown when threshold exceeded) */}
         {lastResult?.isTriggered && lastResult && (
-          <CrashAlert thresholdResult={lastResult} />
+          <CrashAlert 
+            thresholdResult={lastResult} 
+            aiResponse={aiResponse}
+            isProcessing={isProcessing || isCrashProcessing}
+          />
         )}
 
         {/* Sensor Data Display */}
@@ -949,18 +968,97 @@ const home = () => {
           y={0}
           backgroundColor={colors.cardBackground}
         >
-          <XStack gap={"$2"} alignItems="center">
-            <Send color={colors.gray[200]} />
-            <Text color={colors.text}>Current Location</Text>
+          <XStack gap={"$2"} alignItems="center" marginBottom={"$2"}>
+            <MapPin color={colors.primary} />
+            <Text color={colors.text} fontSize={"$5"} fontWeight="bold">
+              Current Location
+            </Text>
           </XStack>
+
+          {/* GPS Data Display */}
           <Square backgroundColor={colors.background} padded radiused borderColor={colors.borderHover} bordered>
             <YStack gap={"$2"}>
-              <XStack>
-                <MapPin color={colors.text} />
-                <Text color={colors.text}>Cebu City, Philippines</Text>
-              </XStack>
+              {currentGPSData?.fix && currentGPSData.latitude && currentGPSData.longitude ? (
+                <>
+                  <XStack gap={"$2"} alignItems="center">
+                    <MapPin color={colors.green[500]} size={16} />
+                    <Text color={colors.text} fontWeight="600">
+                      GPS Fix: {currentGPSData.satellites} satellites
+                    </Text>
+                  </XStack>
+                  <Text color={colors.text} fontSize={"$3"}>
+                    Lat: {currentGPSData.latitude.toFixed(6)}
+                  </Text>
+                  <Text color={colors.text} fontSize={"$3"}>
+                    Lng: {currentGPSData.longitude.toFixed(6)}
+                  </Text>
+                  {currentGPSData.altitude !== null && (
+                    <Text color={colors.text} fontSize={"$3"}>
+                      Alt: {currentGPSData.altitude.toFixed(1)}m
+                    </Text>
+                  )}
+                </>
+              ) : (
+                <XStack gap={"$2"} alignItems="center">
+                  <MapPin color={colors.gray[200]} size={16} />
+                  <Text color={colors.gray[200]}>
+                    {isConnected ? "Waiting for GPS fix..." : "No GPS data"}
+                  </Text>
+                </XStack>
+              )}
             </YStack>
           </Square>
+
+          {/* Map Display */}
+          {currentGPSData?.fix && currentGPSData.latitude && currentGPSData.longitude ? (
+            <View style={styles.mapContainer}>
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: currentGPSData.latitude,
+                  longitude: currentGPSData.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                region={{
+                  latitude: currentGPSData.latitude,
+                  longitude: currentGPSData.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                showsUserLocation={false}
+                showsMyLocationButton={false}
+                mapType="standard"
+              >
+                <Marker
+                  coordinate={{
+                    latitude: currentGPSData.latitude,
+                    longitude: currentGPSData.longitude,
+                  }}
+                  title="Current Location"
+                  description={`${currentGPSData.latitude.toFixed(6)}, ${currentGPSData.longitude.toFixed(6)}`}
+                />
+              </MapView>
+            </View>
+          ) : (
+            <Square 
+              backgroundColor={colors.background} 
+              padded 
+              radiused 
+              borderColor={colors.borderHover} 
+              bordered
+              height={200}
+            >
+              <YStack gap={"$2"} alignItems="center" justifyContent="center" flex={1}>
+                <MapPin color={colors.gray[200]} size={32} />
+                <Text color={colors.gray[200]} textAlign="center">
+                  {isConnected 
+                    ? "Waiting for GPS fix to show map..." 
+                    : "Connect to device to see GPS location"}
+                </Text>
+              </YStack>
+            </Square>
+          )}
         </Card>
 
         <Card
@@ -1002,5 +1100,18 @@ const home = () => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  mapContainer: {
+    height: 200,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+});
 
 export default home;

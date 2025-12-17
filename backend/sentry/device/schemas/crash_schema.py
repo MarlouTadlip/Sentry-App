@@ -3,6 +3,17 @@
 from ninja import Schema
 
 
+class GPSDataSchema(Schema):
+    """GPS data schema."""
+
+    fix: bool
+    satellites: int
+    latitude: float | None
+    longitude: float | None
+    altitude: float | None
+    timestamp: str
+
+
 class SensorReading(Schema):
     """Sensor reading from device."""
 
@@ -34,6 +45,7 @@ class CrashAlertRequest(Schema):
     sensor_reading: SensorReading
     threshold_result: ThresholdResult
     timestamp: str
+    gps_data: GPSDataSchema | None = None  # Optional GPS data (may not have fix at crash time)
 
 
 class CrashAlertResponse(Schema):

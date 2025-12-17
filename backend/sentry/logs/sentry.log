@@ -1373,3 +1373,99 @@ INFO 2025-12-17 21:11:48 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200
 INFO 2025-12-17 21:11:49 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
 INFO 2025-12-17 21:45:08 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
 INFO 2025-12-17 21:45:09 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+WARNING 2025-12-17 22:04:55 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 401 68
+INFO 2025-12-17 22:04:57 log "POST /api/v1/core/auth/refresh HTTP/1.1" 200 444
+INFO 2025-12-17 22:04:58 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 22:05:00 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 22:49:04 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 22:49:05 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 22:54:14 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 22:54:15 log "GET /media/user/images/profile_pictures/profile_kuRC3Lb.jpg HTTP/1.1" 200 166175
+WARNING 2025-12-17 23:26:55 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 401 68
+WARNING 2025-12-17 23:26:57 log "POST /api/v1/core/auth/refresh HTTP/1.1" 401 105
+INFO 2025-12-17 23:27:29 log "POST /api/v1/core/auth/login HTTP/1.1" 200 432
+INFO 2025-12-17 23:27:30 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 23:27:31 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-17 23:30:38 autoreload D:\Projects\Sentry-App\backend\sentry\device\models\crash_event.py changed, reloading.
+INFO 2025-12-17 23:31:06 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 23:34:05 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-17 23:34:24 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 23:36:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-17 23:56:28 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-17 23:56:29 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-18 00:24:43 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-18 00:24:44 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+WARNING 2025-12-18 00:25:19 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:25:20 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:25:21 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:25:22 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:27:06 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:27:08 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:27:09 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:27:10 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:27:16 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 00:27:18 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+INFO 2025-12-18 00:27:21 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:27:32 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:27:42 autoreload D:\Projects\Sentry-App\backend\sentry\core\ai\gemini_service.py changed, reloading.
+INFO 2025-12-18 00:27:45 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:27:56 autoreload D:\Projects\Sentry-App\backend\sentry\device\router\crash_router.py changed, reloading.
+INFO 2025-12-18 00:27:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:28:11 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:28:14 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:28:20 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:28:22 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:28:27 autoreload D:\Projects\Sentry-App\backend\sentry\core\ai\gemini_service.py changed, reloading.
+INFO 2025-12-18 00:28:29 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:28:41 autoreload D:\Projects\Sentry-App\backend\sentry\core\ai\gemini_service.py changed, reloading.
+INFO 2025-12-18 00:28:44 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:29:02 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:29:04 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:29:28 autoreload D:\Projects\Sentry-App\backend\sentry\core\ai\gemini_service.py changed, reloading.
+INFO 2025-12-18 00:29:33 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:34:26 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:34:30 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:34:37 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:34:39 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:34:48 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:34:50 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:34:56 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:34:59 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:35:15 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:35:17 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:35:29 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:35:32 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:35:50 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:35:53 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:36:25 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:36:28 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:36:40 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:36:43 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:36:52 autoreload D:\Projects\Sentry-App\backend\sentry\core\utils\email_utils.py changed, reloading.
+INFO 2025-12-18 00:36:55 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:37:00 autoreload D:\Projects\Sentry-App\backend\sentry\core\utils\email_utils.py changed, reloading.
+INFO 2025-12-18 00:37:03 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:37:09 autoreload D:\Projects\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-18 00:37:11 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:37:16 autoreload D:\Projects\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-18 00:37:20 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:37:33 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:37:35 autoreload Watching for file changes with StatReloader
+INFO 2025-12-18 00:37:48 autoreload D:\Projects\Sentry-App\backend\sentry\core\controllers\auth_controller.py changed, reloading.
+INFO 2025-12-18 00:37:50 autoreload Watching for file changes with StatReloader
+WARNING 2025-12-18 00:50:22 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 401 68
+INFO 2025-12-18 00:50:24 log "POST /api/v1/core/auth/refresh HTTP/1.1" 200 444
+INFO 2025-12-18 00:50:25 log "GET /api/v1/core/auth/me/is-verified HTTP/1.1" 200 52
+INFO 2025-12-18 00:50:27 log "GET /api/v1/core/user/me/info HTTP/1.1" 200 422
+INFO 2025-12-18 00:57:10 autoreload D:\Projects\Sentry-App\backend\sentry\device\controllers\crash_controller.py changed, reloading.
+INFO 2025-12-18 00:57:24 autoreload Watching for file changes with StatReloader
+WARNING 2025-12-18 01:00:20 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:22 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:23 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:25 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:26 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:27 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:28 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:30 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:31 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30
+WARNING 2025-12-18 01:00:32 log "POST /api/v1/device/crash/alert HTTP/1.1" 401 30

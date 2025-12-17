@@ -1,10 +1,14 @@
 """Email utilities for sending emails via Brevo SMTP."""
 
+import logging
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from sentry.settings.config import settings as app_settings
+
+logger = logging.getLogger("core")
 
 
 def send_email(
@@ -47,6 +51,14 @@ def send_email(
         html_message = render_to_string(html_template, context)
         plain_message = strip_tags(html_message)
 
+        logger.info(
+            "📧 Attempting to send email via SMTP | recipient=%s | subject=%s | template=%s | from_email=%s",
+            recipient_email,
+            subject,
+            html_template,
+            settings.DEFAULT_FROM_EMAIL,
+        )
+
         # Send email
         send_mail(
             subject=subject,
@@ -56,10 +68,24 @@ def send_email(
             html_message=html_message,
             fail_silently=False,
         )
-    except Exception:  # noqa: BLE001
-        return False
-    else:
+
+        logger.info(
+            "✅ Email sent successfully via SMTP | recipient=%s | subject=%s | template=%s",
+            recipient_email,
+            subject,
+            html_template,
+        )
         return True
+    except Exception as e:  # noqa: BLE001
+        logger.error(
+            "❌ Failed to send email via SMTP | recipient=%s | subject=%s | template=%s | error=%s",
+            recipient_email,
+            subject,
+            html_template,
+            e,
+            exc_info=True,
+        )
+        return False
 
 
 def send_verification_email(user_email: str, token: str, user_name: str = "") -> bool:

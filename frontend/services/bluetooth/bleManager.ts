@@ -2,10 +2,11 @@
 
 import { BleManager, Device, Characteristic, State } from 'react-native-ble-plx';
 import { Platform, PermissionsAndroid, Linking, Alert } from 'react-native';
-import { SensorReading, BLEDevice } from '@/types/device';
+import { SensorReading, BLEDevice, GPSData } from '@/types/device';
 import { 
   SENTRY_SERVICE_UUID, 
   SENSOR_DATA_CHARACTERISTIC_UUID,
+  GPS_DATA_CHARACTERISTIC_UUID,
   SENTRY_DEVICE_NAME_PATTERN 
 } from '@/utils/constants';
 
@@ -14,11 +15,14 @@ export class BLEManager {
   private connectedDevice: BLEDevice | null = null;
   private connectedDeviceInstance: Device | null = null; // Store actual Device instance
   private onDataReceived?: (data: SensorReading) => void;
+  private onGPSDataReceived?: (data: GPSData) => void;
   private scanning: boolean = false;
   private subscription: any = null;
   private monitorSubscription: any = null;
+  private gpsMonitorSubscription: any = null;
   private stopScanTimeout: ReturnType<typeof setTimeout> | null = null;
   private dataBuffer: string = ''; // Buffer for accumulating BLE packets
+  private gpsDataBuffer: string = ''; // Buffer for accumulating GPS BLE packets
   private bufferTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
@@ -423,6 +427,9 @@ export class BLEManager {
         }
         });
 
+        // Subscribe to GPS data characteristic
+        await this.subscribeToGPSData(deviceWithServices, deviceId);
+
         // Set up connection state monitoring
         this.subscription = deviceWithServices.onDisconnected((error: any, device: Device) => {
           if (error) {
@@ -435,6 +442,10 @@ export class BLEManager {
           if (this.monitorSubscription) {
             this.monitorSubscription.remove();
             this.monitorSubscription = null;
+          }
+          if (this.gpsMonitorSubscription) {
+            this.gpsMonitorSubscription.remove();
+            this.gpsMonitorSubscription = null;
           }
         });
 
@@ -514,6 +525,7 @@ export class BLEManager {
       this.connectedDeviceInstance = null;
       // Clear subscriptions to prevent memory leaks
       this.monitorSubscription = null;
+      this.gpsMonitorSubscription = null;
       this.subscription = null;
     }
   }
@@ -523,6 +535,160 @@ export class BLEManager {
    */
   setDataCallback(callback: (data: SensorReading) => void): void {
     this.onDataReceived = callback;
+  }
+
+  /**
+   * Set callback for received GPS data
+   */
+  setGPSDataCallback(callback: (data: GPSData) => void): void {
+    this.onGPSDataReceived = callback;
+  }
+
+  /**
+   * Subscribe to GPS data characteristic
+   */
+  private async subscribeToGPSData(device: Device, deviceId: string): Promise<void> {
+    try {
+      const serviceUUID = SENTRY_SERVICE_UUID.toLowerCase();
+      const gpsCharacteristicUUID = GPS_DATA_CHARACTERISTIC_UUID.toLowerCase();
+
+      // Get characteristics for the service
+      const characteristics = await device.characteristicsForService(serviceUUID);
+
+      // Find the GPS data characteristic
+      const gpsCharacteristic = characteristics.find(
+        (char) => char.uuid.toLowerCase() === gpsCharacteristicUUID
+      );
+
+      if (!gpsCharacteristic) {
+        console.warn(`⚠️ GPS characteristic ${gpsCharacteristicUUID} not found - GPS data will not be available`);
+        return;
+      }
+
+      // Try to read initial GPS value
+      try {
+        const initialValue = await gpsCharacteristic.read();
+        if (initialValue?.value) {
+          const gpsData = this.parseGPSData(initialValue.value, deviceId);
+          if (gpsData) {
+            this.onGPSDataReceived?.(gpsData);
+          }
+        }
+      } catch (readError) {
+        // Reading might not be supported - that's okay, we'll rely on notifications
+        console.log('ℹ️ GPS characteristic read not supported, using notifications only');
+      }
+
+      // Set up monitoring for GPS characteristic updates
+      this.gpsMonitorSubscription = gpsCharacteristic.monitor((error: any, char: Characteristic | null) => {
+        if (error) {
+          // Ignore errors when device is disconnecting (this is expected)
+          if (error.message?.includes('canceled') || error.message?.includes('disconnected') || error.message?.includes('Unknown error')) {
+            return;
+          }
+          console.error('❌ Error monitoring GPS characteristic:', error);
+          return;
+        }
+
+        if (!char || !char.value) {
+          return;
+        }
+
+        try {
+          const base64Value = char.value || '';
+          const gpsData = this.parseGPSData(base64Value, deviceId);
+          if (gpsData) {
+            this.onGPSDataReceived?.(gpsData);
+          }
+        } catch (error) {
+          console.error('❌ Error parsing GPS data:', error);
+        }
+      });
+
+      console.log('✅ Subscribed to GPS data characteristic');
+    } catch (error) {
+      console.error('❌ Error subscribing to GPS data:', error);
+      // Don't throw - GPS is optional, connection should still succeed
+    }
+  }
+
+  /**
+   * Parse BLE GPS data to GPSData format
+   * ESP32 sends GPS data as JSON: {type: "gps_data", gps: {fix, satellites, latitude, longitude, altitude}}
+   * react-native-ble-plx returns base64 encoded strings
+   * Returns null if data is incomplete or invalid
+   */
+  private parseGPSData(base64Value: string, deviceId: string): GPSData | null {
+    try {
+      // react-native-ble-plx returns base64 encoded strings
+      // We need to decode it to get the actual JSON string
+      let dataString: string;
+      
+      // Check if it's already a JSON string (might be if library auto-decodes)
+      if (base64Value.startsWith('{')) {
+        dataString = base64Value;
+      } else {
+        // Decode from base64 using Buffer
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const Buffer = require('buffer').Buffer;
+        try {
+          const decoded = Buffer.from(base64Value, 'base64').toString('utf8');
+          dataString = decoded;
+        } catch (decodeError) {
+          // If base64 decode fails, try using it as-is
+          console.warn('⚠️ GPS base64 decode failed, using raw value');
+          dataString = base64Value;
+        }
+      }
+
+      // Accumulate data in buffer (BLE sends data in chunks)
+      this.gpsDataBuffer += dataString;
+
+      // Try to parse JSON - if it fails, the data might be incomplete
+      let data: any;
+      try {
+        data = JSON.parse(this.gpsDataBuffer);
+        // Successfully parsed - clear buffer
+        this.gpsDataBuffer = '';
+      } catch (parseError) {
+        // JSON parsing failed - might be incomplete data
+        // Check if it looks like we're in the middle of a JSON object
+        const openBraces = (this.gpsDataBuffer.match(/{/g) || []).length;
+        const closeBraces = (this.gpsDataBuffer.match(/}/g) || []).length;
+        
+        if (openBraces > closeBraces) {
+          // We have more open braces than close - likely incomplete JSON
+          // Wait for more data
+          return null;
+        } else {
+          // Invalid JSON - clear buffer and return null
+          console.warn('⚠️ Invalid GPS JSON data, clearing buffer');
+          this.gpsDataBuffer = '';
+          return null;
+        }
+      }
+
+      // Validate GPS data structure
+      if (data.type === 'gps_data' && data.gps) {
+        const gps = data.gps;
+        return {
+          fix: gps.fix || false,
+          satellites: gps.satellites || 0,
+          latitude: gps.latitude !== undefined && gps.latitude !== null ? gps.latitude : null,
+          longitude: gps.longitude !== undefined && gps.longitude !== null ? gps.longitude : null,
+          altitude: gps.altitude !== undefined && gps.altitude !== null ? gps.altitude : null,
+          timestamp: new Date().toISOString(),
+        };
+      } else {
+        // Invalid GPS data structure
+        console.warn('⚠️ Invalid GPS data structure:', data);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error parsing GPS data:', error);
+      this.gpsDataBuffer = '';
+      return null;
+    }
   }
 
   /**
@@ -711,10 +877,17 @@ export class BLEManager {
       this.monitorSubscription = null;
     }
     
+    if (this.gpsMonitorSubscription) {
+      this.gpsMonitorSubscription.remove();
+      this.gpsMonitorSubscription = null;
+    }
+    
     this.manager.stopDeviceScan();
     this.scanning = false;
     this.dataBuffer = ''; // Clear buffer on cleanup
+    this.gpsDataBuffer = ''; // Clear GPS buffer on cleanup
     this.onDataReceived = undefined;
+    this.onGPSDataReceived = undefined;
   }
 
   /**

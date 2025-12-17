@@ -11,6 +11,7 @@ from device.models import CrashEvent
 from device.schemas.crash_schema import CrashAlertRequest, CrashAlertResponse
 from device.services.crash_detector import CrashDetectorService
 from device.services.fcm_service import FCMService
+from device.utils.crash_utils import notify_loved_ones_with_gps
 
 logger = logging.getLogger("device")
 
@@ -40,6 +41,34 @@ def process_crash_alert(
 
     """
     try:
+        # Log incoming crash alert request
+        gps_info = (
+            f"GPS: fix={data.gps_data.fix},"
+            f"lat={data.gps_data.latitude},"
+            f"lng={data.gps_data.longitude},"
+            f"satellites={data.gps_data.satellites}"
+            if data.gps_data
+            else "GPS: no data"
+        )
+        logger.info(
+            "📥 Crash alert received | device_id=%s | timestamp=%s | "
+            "threshold_severity=%s | trigger_type=%s | g_force=%.2fg | "
+            "sensor: ax=%.2f, ay=%.2f, az=%.2f | roll=%.1f°, pitch=%.1f° | "
+            "tilt_detected=%s | %s",
+            data.device_id,
+            data.timestamp,
+            data.threshold_result.severity,
+            data.threshold_result.trigger_type,
+            data.threshold_result.g_force,
+            data.sensor_reading.ax,
+            data.sensor_reading.ay,
+            data.sensor_reading.az,
+            data.sensor_reading.roll,
+            data.sensor_reading.pitch,
+            data.sensor_reading.tilt_detected,
+            gps_info,
+        )
+
         # Initialize services
         gemini_service = GeminiService()
         crash_detector = CrashDetectorService()
@@ -49,6 +78,11 @@ def process_crash_alert(
         recent_data = crash_detector.get_recent_sensor_data(
             device_id=data.device_id,
             lookback_seconds=30,
+        )
+        logger.info(
+            "📊 Retrieved %s sensor data points for context (device_id=%s)",
+            len(recent_data),
+            data.device_id,
         )
 
         # Prepare current reading dict
@@ -62,16 +96,57 @@ def process_crash_alert(
         }
 
         # Call Gemini AI for analysis
+        logger.info("🤖 Calling Gemini AI for crash analysis (device_id=%s)", data.device_id)
         ai_analysis = gemini_service.analyze_crash_data(
             sensor_data=recent_data,
             current_reading=current_reading,
             context_seconds=30,
         )
+        logger.info(
+            "✅ AI analysis complete | device_id=%s | is_crash=%s | confidence=%.2f | "
+            "severity=%s | crash_type=%s | false_positive_risk=%.2f | reasoning=%s...",
+            data.device_id,
+            ai_analysis["is_crash"],
+            ai_analysis["confidence"],
+            ai_analysis["severity"],
+            ai_analysis["crash_type"],
+            ai_analysis["false_positive_risk"],
+            ai_analysis["reasoning"][:100],
+        )
 
         # Create CrashEvent if confirmed
         crash_event = None
         if ai_analysis["is_crash"]:
+            logger.info(
+                "🚨 Crash confirmed by AI - creating CrashEvent (device_id=%s, severity=%s, confidence=%.2f)",
+                data.device_id,
+                ai_analysis["severity"],
+                ai_analysis["confidence"],
+            )
             with transaction.atomic():  # type: ignore[call-overload]
+                # Extract GPS data if available
+                gps_latitude = None
+                gps_longitude = None
+                gps_altitude = None
+                gps_fix = False
+                gps_satellites = None
+
+                if data.gps_data and data.gps_data.fix:
+                    gps_latitude = data.gps_data.latitude
+                    gps_longitude = data.gps_data.longitude
+                    gps_altitude = data.gps_data.altitude
+                    gps_fix = data.gps_data.fix
+                    gps_satellites = data.gps_data.satellites
+                    logger.info(
+                        "📍 GPS location available: (%s, %s) with %s satellites (device_id=%s)",
+                        gps_latitude,
+                        gps_longitude,
+                        gps_satellites,
+                        data.device_id,
+                    )
+                else:
+                    logger.warning("⚠️ No GPS fix available at crash time (device_id=%s)", data.device_id)
+
                 crash_event = CrashEvent.objects.create(  # type: ignore[attr-defined]
                     device_id=data.device_id,
                     user=request.user if hasattr(request, "user") and request.user.is_authenticated else None,  # type: ignore[attr-defined]
@@ -93,15 +168,67 @@ def process_crash_alert(
                         "roll": data.sensor_reading.roll,
                         "pitch": data.sensor_reading.pitch,
                     },
+                    # GPS fields
+                    crash_latitude=gps_latitude,
+                    crash_longitude=gps_longitude,
+                    crash_altitude=gps_altitude,
+                    gps_fix_at_crash=gps_fix,
+                    satellites_at_crash=gps_satellites,
+                )
+                logger.info(
+                    "💾 CrashEvent created successfully | crash_event_id=%s | device_id=%s | "
+                    "severity=%s | confidence=%.2f",  # type: ignore[attr-defined]
+                    crash_event.id,  # type: ignore[attr-defined]
+                    data.device_id,
+                    ai_analysis["severity"],
+                    ai_analysis["confidence"],
                 )
 
                 # Send FCM push notification
                 if ai_analysis["severity"] in ["high", "medium"]:
-                    fcm_service.send_crash_notification(
+                    logger.info(
+                        "📱 Sending FCM push notification (device_id=%s, severity=%s, crash_event_id=%s)",  # type: ignore[attr-defined]
+                        data.device_id,
+                        ai_analysis["severity"],
+                        crash_event.id,  # type: ignore[attr-defined]
+                    )
+                    notification_sent = fcm_service.send_crash_notification(
                         device_id=data.device_id,
                         crash_event=crash_event,
                         ai_analysis=ai_analysis,
                     )
+                    if notification_sent:
+                        logger.info("✅ FCM notification sent successfully (device_id=%s)", data.device_id)
+                    else:
+                        logger.warning("⚠️ FCM notification failed to send (device_id=%s)", data.device_id)
+
+                    # Send GPS location to loved ones
+                    logger.info(
+                        "👥 Notifying loved ones with GPS location (device_id=%s, crash_event_id=%s)",  # type: ignore[attr-defined]
+                        data.device_id,
+                        crash_event.id,  # type: ignore[attr-defined]
+                    )
+                    notify_loved_ones_with_gps(
+                        device_id=data.device_id,
+                        crash_event=crash_event,
+                    )
+        else:
+            logger.info(
+                "✅ False positive detected by AI - no crash event created "
+                "(device_id=%s, confidence=%.2f, false_positive_risk=%.2f)",
+                data.device_id,
+                ai_analysis["confidence"],
+                ai_analysis["false_positive_risk"],
+            )
+
+        logger.info(
+            "📤 Crash alert processing complete | device_id=%s | is_crash=%s | "
+            "crash_event_created=%s | crash_event_id=%s",  # type: ignore[attr-defined]
+            data.device_id,
+            ai_analysis["is_crash"],
+            crash_event is not None,
+            crash_event.id if crash_event else None,  # type: ignore[attr-defined]
+        )
 
         return CrashAlertResponse(
             is_crash=ai_analysis["is_crash"],

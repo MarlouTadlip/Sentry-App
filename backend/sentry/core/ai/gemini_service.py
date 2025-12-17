@@ -155,6 +155,16 @@ Respond with ONLY the JSON object, no additional text."""
                 logger.error("Gemini client not initialized")
                 return self._default_response()
 
+            # Log comprehensive AI analysis request
+            logger.info(
+                f"🤖 Calling Gemini AI for crash analysis | model={self.model_name} | "
+                f"sensor_data_points={len(sensor_data)} | context_seconds={context_seconds} | "
+                f"current_reading: ax={current_reading.get('ax', 0):.2f}, "
+                f"ay={current_reading.get('ay', 0):.2f}, az={current_reading.get('az', 0):.2f} | "
+                f"roll={current_reading.get('roll', 0):.1f}°, pitch={current_reading.get('pitch', 0):.1f}° | "
+                f"tilt_detected={current_reading.get('tilt_detected', False)} | prompt_length={len(prompt)}"
+            )
+
             # Generate content using the new API
             # Note: The exact API structure for google.genai may vary
             # Please refer to the official documentation: https://github.com/google-gemini/generative-ai-python
@@ -197,7 +207,7 @@ Respond with ONLY the JSON object, no additional text."""
             result = json.loads(response_text)
 
             # Validate and sanitize response
-            return {
+            ai_result = {
                 "is_crash": bool(result.get("is_crash", False)),
                 "confidence": float(result.get("confidence", 0.5)),
                 "severity": result.get("severity", "low"),
@@ -207,12 +217,32 @@ Respond with ONLY the JSON object, no additional text."""
                 "false_positive_risk": float(result.get("false_positive_risk", 0.5)),
             }
 
+            # Log comprehensive AI analysis result
+            logger.info(
+                f"✅ Gemini AI analysis complete | model={self.model_name} | "
+                f"is_crash={ai_result['is_crash']} | confidence={ai_result['confidence']:.2f} | "
+                f"severity={ai_result['severity']} | crash_type={ai_result['crash_type']} | "
+                f"false_positive_risk={ai_result['false_positive_risk']:.2f} | "
+                f"key_indicators={len(ai_result['key_indicators'])} | "
+                f"reasoning_length={len(ai_result['reasoning'])} | "
+                f"reasoning={ai_result['reasoning'][:150]}..."
+            )
+
+            return ai_result
+
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Gemini response as JSON: {e}")
-            logger.error(f"Response text: {response_text}")
+            logger.error(
+                f"❌ Failed to parse Gemini response as JSON | model={self.model_name} | "
+                f"error={str(e)} | response_text_length={len(response_text)} | "
+                f"response_preview={response_text[:200]}..."
+            )
             return self._default_response()
         except Exception as e:
-            logger.error(f"Error calling Gemini API: {e}", exc_info=True)
+            logger.error(
+                f"❌ Error calling Gemini API | model={self.model_name} | "
+                f"error={str(e)} | error_type={type(e).__name__}",
+                exc_info=True,
+            )
             return self._default_response()
 
     def _default_response(self) -> dict[str, Any]:
