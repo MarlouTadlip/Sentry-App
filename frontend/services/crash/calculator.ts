@@ -42,3 +42,70 @@ export function isTiltExceeded(
   return Math.abs(roll) >= threshold || Math.abs(pitch) >= threshold;
 }
 
+/**
+ * Calculate speed from GPS coordinates (distance/time)
+ * Uses haversine formula to calculate distance between two GPS points
+ * 
+ * @param currentLat - Current latitude
+ * @param currentLon - Current longitude
+ * @param previousLat - Previous latitude
+ * @param previousLon - Previous longitude
+ * @param timeDelta - Time difference in seconds
+ * @returns Speed in m/s (null if invalid data)
+ */
+export function calculateSpeed(
+  currentLat: number,
+  currentLon: number,
+  previousLat: number | null,
+  previousLon: number | null,
+  timeDelta: number
+): number | null {
+  if (!previousLat || !previousLon || timeDelta <= 0) return null;
+
+  // Haversine formula to calculate distance in meters
+  const R = 6371000; // Earth radius in meters
+  const dLat = (currentLat - previousLat) * Math.PI / 180;
+  const dLon = (currentLon - previousLon) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(previousLat * Math.PI / 180) * Math.cos(currentLat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in meters
+
+  const speed = distance / timeDelta; // Speed in m/s
+  return speed;
+}
+
+/**
+ * Calculate speed change (acceleration/deceleration) from speed values
+ * 
+ * @param currentSpeed - Current speed in m/s
+ * @param previousSpeed - Previous speed in m/s
+ * @param timeDelta - Time difference in seconds
+ * @returns Speed change in m/s² (negative = deceleration, positive = acceleration)
+ */
+export function calculateSpeedChange(
+  currentSpeed: number,
+  previousSpeed: number,
+  timeDelta: number
+): number | null {
+  if (timeDelta <= 0) return null;
+  return (currentSpeed - previousSpeed) / timeDelta; // Speed change in m/s²
+}
+
+/**
+ * Check if speed change indicates sudden deceleration (potential crash)
+ * 
+ * @param speedChange - Speed change in m/s²
+ * @param threshold - Threshold for sudden deceleration (default: -10 m/s²)
+ * @returns True if speed change exceeds threshold (sudden deceleration)
+ */
+export function isSuddenDeceleration(
+  speedChange: number | null,
+  threshold: number = -10.0
+): boolean {
+  if (speedChange === null) return false;
+  return speedChange <= threshold; // Negative value = deceleration
+}
+

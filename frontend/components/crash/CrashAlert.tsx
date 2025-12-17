@@ -1,10 +1,12 @@
 /** Crash alert component for displaying crash detection results. */
 
-import React from 'react';
-import { Card, Text, XStack, YStack, Spinner, Button } from 'tamagui';
+import React, { useState } from 'react';
+import { Card, Text, XStack, YStack, Spinner, Button, Input } from 'tamagui';
 import { ThresholdResult } from '@/types/crash';
 import { CrashAlertResponse } from '@/types/api';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useCrashFeedback } from '@/hooks/mutations/useCrashFeedback';
+import { useCrash } from '@/context/CrashContext';
 
 interface CrashAlertProps {
   thresholdResult: ThresholdResult;
@@ -14,15 +16,20 @@ interface CrashAlertProps {
 
 export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }: CrashAlertProps) {
   const colors = useThemeColors();
+  const { crashEventId } = useCrash();
+  const feedbackMutation = useCrashFeedback();
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackComments, setFeedbackComments] = useState('');
+  const [submittedFeedback, setSubmittedFeedback] = useState<'true_positive' | 'false_positive' | null>(null);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
         return colors.red;
       case 'medium':
-        return colors.orange;
+        return colors.emerald[500];
       case 'low':
-        return colors.yellow;
+        return colors.green[500];
       default:
         return colors.gray[200];
     }
@@ -30,8 +37,8 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.8) return colors.green[500];
-    if (confidence >= 0.6) return colors.yellow;
-    return colors.orange;
+    if (confidence >= 0.6) return colors.emerald[500];
+    return colors.emerald[500];
   };
 
   const borderColor = getSeverityColor(thresholdResult.severity);
@@ -103,8 +110,8 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
         </Text>
         {isProcessing && (
           <XStack alignItems="center" gap="$2">
-            <Spinner size="small" color={colors.blue} />
-            <Text fontSize="$3" color={colors.gray[400]}>
+            <Spinner size="small" color={colors.green[500]} />
+            <Text fontSize="$3" color={colors.gray[200]}>
               Analyzing...
             </Text>
           </XStack>
@@ -112,8 +119,8 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
       </XStack>
 
       {isProcessing && !aiResponse && (
-        <YStack gap="$3" padding="$3" backgroundColor={colors.gray[50]} borderRadius="$2">
-          <Text fontSize="$4" color={colors.gray[400]} textAlign="center">
+        <YStack gap="$3" padding="$3" backgroundColor={colors.cardBackground} borderRadius="$2">
+          <Text fontSize="$4" color={colors.gray[200]} textAlign="center">
             Sending crash data to AI for analysis...
           </Text>
         </YStack>
@@ -177,7 +184,7 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
               </Text>
               <Text
                 fontSize="$4"
-                color={aiResponse.false_positive_risk > 0.5 ? colors.orange : colors.green[500]}
+                color={aiResponse.false_positive_risk > 0.5 ? colors.emerald[500] : colors.green[500]}
               >
                 {(aiResponse.false_positive_risk * 100).toFixed(0)}%
               </Text>
@@ -189,7 +196,7 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
             <Text fontSize="$4" fontWeight="600" color={colors.gray[200]}>
               AI Reasoning:
             </Text>
-            <Card padding="$3" backgroundColor={colors.gray[50]} borderRadius="$2">
+            <Card padding="$3" backgroundColor={colors.cardBackground} borderRadius="$2">
               <Text fontSize="$4" color={colors.text} lineHeight="$1">
                 {aiResponse.reasoning}
               </Text>
@@ -205,7 +212,7 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
               <YStack gap="$1">
                 {aiResponse.key_indicators.map((indicator, index) => (
                   <XStack key={index} alignItems="flex-start" gap="$2">
-                    <Text fontSize="$4" color={colors.blue} marginTop="$1">
+                    <Text fontSize="$4" color={colors.green[500]} marginTop="$1">
                       •
                     </Text>
                     <Text fontSize="$4" color={colors.text} flex={1}>
@@ -220,11 +227,106 @@ export function CrashAlert({ thresholdResult, aiResponse, isProcessing = false }
       )}
 
       {!isProcessing && !aiResponse && (
-        <YStack gap="$2" padding="$3" backgroundColor={colors.gray[50]} borderRadius="$2">
-          <Text fontSize="$4" color={colors.gray[400]} textAlign="center">
+        <YStack gap="$2" padding="$3" backgroundColor={colors.cardBackground} borderRadius="$2">
+          <Text fontSize="$4" color={colors.gray[200]} textAlign="center">
             Waiting for AI analysis...
           </Text>
         </YStack>
+      )}
+
+      {/* User Feedback Section */}
+      {aiResponse && crashEventId && !submittedFeedback && (
+        <>
+          <YStack
+            height={1}
+            backgroundColor={colors.border}
+            marginVertical="$3"
+          />
+          <YStack gap="$3">
+            <Text fontSize="$5" fontWeight="bold" color={colors.text}>
+              💬 Help Improve Detection
+            </Text>
+            <Text fontSize="$4" color={colors.gray[200]}>
+              Was this a real crash or a false alarm?
+            </Text>
+            
+            {!showFeedback ? (
+              <XStack gap="$2" flexWrap="wrap">
+                <Button
+                  flex={1}
+                  minWidth={120}
+                  backgroundColor={colors.green[500]}
+                  color="white"
+                  onPress={() => {
+                    setShowFeedback(true);
+                    setSubmittedFeedback('true_positive');
+                    feedbackMutation.mutate({
+                      eventId: crashEventId,
+                      data: {
+                        user_feedback: 'true_positive',
+                      },
+                    });
+                  }}
+                  disabled={feedbackMutation.isPending}
+                >
+                  {feedbackMutation.isPending ? (
+                    <Spinner size="small" color="white" />
+                  ) : (
+                    '✅ Real Crash'
+                  )}
+                </Button>
+                <Button
+                  flex={1}
+                  minWidth={120}
+                  backgroundColor={colors.emerald[500]}
+                  color="white"
+                  onPress={() => {
+                    setShowFeedback(true);
+                    setSubmittedFeedback('false_positive');
+                    feedbackMutation.mutate({
+                      eventId: crashEventId,
+                      data: {
+                        user_feedback: 'false_positive',
+                      },
+                    });
+                  }}
+                  disabled={feedbackMutation.isPending}
+                >
+                  {feedbackMutation.isPending ? (
+                    <Spinner size="small" color="white" />
+                  ) : (
+                    '❌ False Alarm'
+                  )}
+                </Button>
+              </XStack>
+            ) : (
+              <YStack gap="$2">
+                <Card
+                  bordered
+                  borderColor={submittedFeedback === 'true_positive' ? colors.green[500] : colors.emerald[500]}
+                  borderWidth={2}
+                  padding="$3"
+                  backgroundColor={
+                    submittedFeedback === 'true_positive'
+                      ? colors.green[500] + '20'
+                      : colors.emerald[500] + '20'
+                  }
+                >
+                  <Text fontSize="$4" fontWeight="600" color={colors.text}>
+                    {submittedFeedback === 'true_positive'
+                      ? '✅ Thank you! Marked as real crash.'
+                      : '❌ Thank you! Marked as false alarm.'}
+                  </Text>
+                  {feedbackMutation.isSuccess && (
+                    <Text fontSize="$3" color={colors.gray[200]} marginTop="$2">
+                      Your feedback helps improve crash detection accuracy.
+                    </Text>
+                  )}
+                </Card>
+              </YStack>
+            )}
+          </YStack>
+        </>
       )}
     </Card>
   );

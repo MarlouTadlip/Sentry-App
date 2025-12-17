@@ -198,3 +198,54 @@ INFO 2025-12-18 01:45:39 crash_controller [LOVED_ONES] Notifying loved ones with
 WARNING 2025-12-18 01:45:39 crash_utils No user associated with crash event 1
 INFO 2025-12-18 01:45:39 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=True | crash_event_created=True | crash_event_id=1
 INFO 2025-12-18 01:45:39 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=True)
+INFO 2025-12-18 02:14:09 crash_router [IN] POST /api/v1/device/crash/alert - Crash alert endpoint called (device_id=44:1D:64:F3:D8:D6, timestamp=2025-12-17T18:14:09.885Z)
+INFO 2025-12-18 02:14:09 crash_controller [IN] Crash alert received | device_id=44:1D:64:F3:D8:D6 | timestamp=2025-12-17T18:14:09.885Z | threshold_severity=medium | trigger_type=tilt | g_force=0.05g | sensor: ax=0.07, ay=0.09, az=-0.51 | roll=169.9 deg, pitch=-7.8 deg | tilt_detected=True | GPS: no data
+INFO 2025-12-18 02:14:12 crash_controller [DATA] Retrieved 0 sensor data points for context (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:14:12 crash_controller [AI] Calling Gemini AI for crash analysis (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:14:14 crash_controller [OK] AI analysis complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | confidence=0.30 | severity=low | crash_type=false_positive | false_positive_risk=0.70 | reasoning=The calculated G-force is low (0.05g). The tilt is significant (169.9° roll, -7.8° pitch) which trig...
+INFO 2025-12-18 02:14:14 crash_controller [OK] False positive detected by AI - no crash event created (device_id=44:1D:64:F3:D8:D6, confidence=0.30, false_positive_risk=0.70)
+INFO 2025-12-18 02:14:14 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | crash_event_created=False | crash_event_id=None
+INFO 2025-12-18 02:14:14 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=False)
+INFO 2025-12-18 02:14:24 crash_router [IN] POST /api/v1/device/crash/alert - Crash alert endpoint called (device_id=44:1D:64:F3:D8:D6, timestamp=2025-12-17T18:14:24.970Z)
+INFO 2025-12-18 02:14:24 crash_controller [IN] Crash alert received | device_id=44:1D:64:F3:D8:D6 | timestamp=2025-12-17T18:14:24.970Z | threshold_severity=medium | trigger_type=tilt | g_force=0.06g | sensor: ax=0.38, ay=0.16, az=-0.35 | roll=155.3 deg, pitch=-44.3 deg | tilt_detected=True | GPS: no data
+INFO 2025-12-18 02:14:26 crash_controller [DATA] Retrieved 0 sensor data points for context (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:14:26 crash_controller [AI] Calling Gemini AI for crash analysis (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:14:28 crash_controller [OK] AI analysis complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | confidence=0.30 | severity=low | crash_type=false_positive | false_positive_risk=0.70 | reasoning=The G-force is low (0.06g). The tilt angles (roll=155.3°, pitch=-44.3°) indicate the helmet is signi...
+INFO 2025-12-18 02:14:28 crash_controller [OK] False positive detected by AI - no crash event created (device_id=44:1D:64:F3:D8:D6, confidence=0.30, false_positive_risk=0.70)
+INFO 2025-12-18 02:14:28 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | crash_event_created=False | crash_event_id=None
+INFO 2025-12-18 02:14:28 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=False)
+INFO 2025-12-18 02:14:39 crash_router [IN] POST /api/v1/device/crash/alert - Crash alert endpoint called (device_id=44:1D:64:F3:D8:D6, timestamp=2025-12-17T18:14:40.127Z)
+INFO 2025-12-18 02:14:39 crash_controller [IN] Crash alert received | device_id=44:1D:64:F3:D8:D6 | timestamp=2025-12-17T18:14:40.127Z | threshold_severity=medium | trigger_type=tilt | g_force=0.05g | sensor: ax=0.33, ay=0.15, az=-0.37 | roll=157.6 deg, pitch=-39.3 deg | tilt_detected=True | GPS: no data
+INFO 2025-12-18 02:14:41 crash_controller [DATA] Retrieved 0 sensor data points for context (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:14:41 crash_controller [AI] Calling Gemini AI for crash analysis (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:14:43 crash_controller [OK] AI analysis complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | confidence=0.30 | severity=low | crash_type=false_positive | false_positive_risk=0.70 | reasoning=The G-force is low (0.05g), suggesting not a severe impact. While the tilt is significant (roll=157....
+INFO 2025-12-18 02:14:43 crash_controller [OK] False positive detected by AI - no crash event created (device_id=44:1D:64:F3:D8:D6, confidence=0.30, false_positive_risk=0.70)
+INFO 2025-12-18 02:14:43 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | crash_event_created=False | crash_event_id=None
+INFO 2025-12-18 02:14:43 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=False)
+INFO 2025-12-18 02:40:36 crash_router [IN] POST /api/v1/device/crash/alert - Crash alert endpoint called (device_id=44:1D:64:F3:D8:D6, timestamp=2025-12-17T18:40:36.831Z)
+INFO 2025-12-18 02:40:36 crash_controller [IN] Crash alert received | device_id=44:1D:64:F3:D8:D6 | timestamp=2025-12-17T18:40:36.831Z | threshold_severity=medium | trigger_type=tilt | g_force=0.05g | sensor: ax=0.39, ay=-0.02, az=-0.27 | roll=-176.0 deg, pitch=-55.4 deg | tilt_detected=True | GPS: no data
+INFO 2025-12-18 02:40:38 crash_controller [CONTEXT] Calculated lookback_seconds=45 based on interval=15 (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:40:38 crash_controller [DATA] Retrieved 0 sensor data points for context (device_id=44:1D:64:F3:D8:D6, lookback_seconds=45)
+INFO 2025-12-18 02:40:38 crash_controller [AI] Calling Gemini AI for crash analysis (device_id=44:1D:64:F3:D8:D6, crash_events=0)
+INFO 2025-12-18 02:40:41 crash_controller [OK] AI analysis complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | confidence=0.30 | severity=low | crash_type=false_positive | false_positive_risk=0.70 | reasoning=The G-force is low (0.05g). The roll angle is close to -180°, and pitch is at -55.4°. This is not in...
+INFO 2025-12-18 02:40:41 crash_controller [OK] False positive detected by AI - no crash event created (device_id=44:1D:64:F3:D8:D6, confidence=0.30, false_positive_risk=0.70)
+INFO 2025-12-18 02:40:41 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | crash_event_created=False | crash_event_id=None
+INFO 2025-12-18 02:40:41 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=False)
+INFO 2025-12-18 02:48:45 crash_router [IN] POST /api/v1/device/crash/alert - Crash alert endpoint called (device_id=44:1D:64:F3:D8:D6, timestamp=2025-12-17T18:48:45.589Z)
+INFO 2025-12-18 02:48:45 crash_controller [IN] Crash alert received | device_id=44:1D:64:F3:D8:D6 | timestamp=2025-12-17T18:48:45.589Z | threshold_severity=medium | trigger_type=tilt | g_force=0.05g | sensor: ax=0.20, ay=-0.01, az=-0.47 | roll=-178.9 deg, pitch=-23.4 deg | tilt_detected=True | GPS: no data
+INFO 2025-12-18 02:48:48 crash_controller [CONTEXT] Calculated lookback_seconds=45 based on interval=15 (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:48:48 crash_controller [DATA] Retrieved 0 sensor data points for context (device_id=44:1D:64:F3:D8:D6, lookback_seconds=45)
+INFO 2025-12-18 02:48:48 crash_controller [AI] Calling Gemini AI for crash analysis (device_id=44:1D:64:F3:D8:D6, crash_events=0)
+INFO 2025-12-18 02:48:51 crash_controller [OK] AI analysis complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | confidence=0.30 | severity=low | crash_type=false_positive | false_positive_risk=0.70 | reasoning=The calculated G-force is low (0.05g), suggesting a minor event. While the tilt is significant, a ro...
+INFO 2025-12-18 02:48:51 crash_controller [OK] False positive detected by AI - no crash event created (device_id=44:1D:64:F3:D8:D6, confidence=0.30, false_positive_risk=0.70)
+INFO 2025-12-18 02:48:51 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | crash_event_created=False | crash_event_id=None
+INFO 2025-12-18 02:48:51 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=False)
+INFO 2025-12-18 02:49:05 crash_router [IN] POST /api/v1/device/crash/alert - Crash alert endpoint called (device_id=44:1D:64:F3:D8:D6, timestamp=2025-12-17T18:49:05.757Z)
+INFO 2025-12-18 02:49:05 crash_controller [IN] Crash alert received | device_id=44:1D:64:F3:D8:D6 | timestamp=2025-12-17T18:49:05.757Z | threshold_severity=medium | trigger_type=tilt | g_force=0.05g | sensor: ax=0.31, ay=0.04, az=-0.42 | roll=174.4 deg, pitch=-36.3 deg | tilt_detected=True | GPS: no data
+INFO 2025-12-18 02:49:06 crash_controller [CONTEXT] Calculated lookback_seconds=45 based on interval=15 (device_id=44:1D:64:F3:D8:D6)
+INFO 2025-12-18 02:49:06 crash_controller [DATA] Retrieved 0 sensor data points for context (device_id=44:1D:64:F3:D8:D6, lookback_seconds=45)
+INFO 2025-12-18 02:49:06 crash_controller [AI] Calling Gemini AI for crash analysis (device_id=44:1D:64:F3:D8:D6, crash_events=0)
+INFO 2025-12-18 02:49:08 crash_controller [OK] AI analysis complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | confidence=0.30 | severity=low | crash_type=false_positive | false_positive_risk=0.70 | reasoning=The calculated G-force is relatively low (0.05g). The tilt angles are significant, but the helmet co...
+INFO 2025-12-18 02:49:08 crash_controller [OK] False positive detected by AI - no crash event created (device_id=44:1D:64:F3:D8:D6, confidence=0.30, false_positive_risk=0.70)
+INFO 2025-12-18 02:49:08 crash_controller [OUT] Crash alert processing complete | device_id=44:1D:64:F3:D8:D6 | is_crash=False | crash_event_created=False | crash_event_id=None
+INFO 2025-12-18 02:49:09 crash_router [OK] POST /api/v1/device/crash/alert - Successfully processed (device_id=44:1D:64:F3:D8:D6, is_crash=False)

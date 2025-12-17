@@ -85,6 +85,7 @@ class GeminiService:
         sensor_data: list[dict[str, Any]],
         current_reading: dict[str, Any],
         include_metrics: bool = True,
+        crash_events: list[dict[str, Any]] | None = None,
     ) -> str:
         """Format sensor data for AI analysis.
 
@@ -92,6 +93,7 @@ class GeminiService:
             sensor_data: List of sensor readings from database
             current_reading: Current sensor reading that triggered alert
             include_metrics: Whether to include calculated metrics
+            crash_events: Optional list of recent crash events for context
 
         Returns:
             Formatted string for AI prompt
@@ -107,6 +109,25 @@ class GeminiService:
                     f"Accel: ({reading.get('ax', 0):.2f}, {reading.get('ay', 0):.2f}, {reading.get('az', 0):.2f}), "
                     f"Tilt: roll={reading.get('roll', 0):.1f}°, pitch={reading.get('pitch', 0):.1f}°"
                 )
+
+        # Add crash event history if available
+        if crash_events:
+            lines.append("\n=== RECENT CRASH EVENT HISTORY ===")
+            for i, event in enumerate(crash_events, 1):
+                status = "CONFIRMED CRASH" if event.get("is_confirmed_crash") else "FALSE POSITIVE"
+                lines.append(
+                    f"  Event {i}: {status} | "
+                    f"Time: {event.get('crash_timestamp', 'N/A')} | "
+                    f"Severity: {event.get('severity', 'unknown')} | "
+                    f"Confidence: {event.get('confidence_score', 0):.2f} | "
+                    f"Type: {event.get('crash_type', 'unknown')} | "
+                    f"Max G-force: {event.get('max_g_force', 0):.2f}g"
+                )
+            lines.append(
+                "\nNote: Consider recent crash patterns when analyzing. "
+                "Multiple false positives may indicate a pattern (e.g., aggressive riding, sensor issues). "
+                "Recent confirmed crashes may indicate follow-up impacts or related incidents."
+            )
 
         # Add current reading (the one that triggered alert)
         lines.append("\n=== CURRENT READING (ALERT TRIGGER) ===")
@@ -134,6 +155,7 @@ class GeminiService:
         sensor_data: list[dict[str, Any]],
         current_reading: dict[str, Any],
         context_seconds: int = 30,
+        crash_events: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """Analyze crash data using Gemini AI.
 
@@ -141,6 +163,7 @@ class GeminiService:
             sensor_data: List of sensor readings from database
             current_reading: Current sensor reading that triggered alert
             context_seconds: Number of seconds of context to analyze
+            crash_events: Optional list of recent crash events for enhanced context
 
         Returns:
             Dictionary containing AI analysis results:
@@ -159,18 +182,36 @@ class GeminiService:
             return self._default_response()
 
         try:
-            # Format sensor data
+            # Format sensor data with crash event history
             formatted_data = self.format_sensor_data_for_ai(
                 sensor_data=sensor_data,
                 current_reading=current_reading,
                 include_metrics=True,
+                crash_events=crash_events,
             )
+
+            # Create prompt with crash event history context
+            crash_history_note = ""
+            if crash_events:
+                confirmed_count = sum(1 for e in crash_events if e.get("is_confirmed_crash"))
+                false_positive_count = len(crash_events) - confirmed_count
+                crash_history_note = f"""
+
+CRASH EVENT HISTORY CONTEXT:
+- Recent events in this time window: {len(crash_events)}
+- Confirmed crashes: {confirmed_count}
+- False positives: {false_positive_count}
+
+IMPORTANT: Consider this history when analyzing:
+- Multiple false positives may indicate a pattern (aggressive riding, sensor issues, threshold too sensitive)
+- Recent confirmed crashes may indicate follow-up impacts or related incidents
+- Use this context to improve accuracy and reduce false positives"""
 
             # Create prompt
             prompt = f"""You are analyzing sensor data from a motorcycle helmet crash detection system. 
 A threshold alert was triggered (G-force or tilt exceeded limits).
 
-{formatted_data}
+{formatted_data}{crash_history_note}
 
 Analyze this data and determine if this represents an actual crash event or a false positive (e.g., sudden braking, helmet removal, normal riding).
 
@@ -190,6 +231,7 @@ Important considerations:
 - Sustained tilt might indicate actual crash or helmet removal
 - Look at the pattern over time, not just the current reading
 - Consider motorcycle riding context (acceleration, braking, cornering)
+- Use crash event history to identify patterns and improve accuracy
 
 Respond with ONLY the JSON object, no additional text."""
 

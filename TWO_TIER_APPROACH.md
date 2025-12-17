@@ -13,10 +13,12 @@
 ### Recent Updates & Notes
 
 **GPS Implementation Status**:
-- ✅ GPS data reception from ESP32 via BLE is **fully implemented** (Phase 1)
-- ✅ GPS data parsing in `bleManager.ts` is **complete** (Phase 1)
-- ✅ GPS data storage in `DeviceContext` is **working** (Phase 1)
-- ✅ GPS data is **NOW included** in crash alert requests (Phase 2 - ✅ COMPLETED)
+- ⚠️ GPS data collection from phone (React Native) needs to be implemented (Phase 1)
+- ⚠️ Location permission requests need to be added to UI (Phase 1)
+- ⚠️ GPS data service using `expo-location` needs to be created (Phase 1)
+- ⚠️ Speed calculation (client-side) needs to be implemented (Phase 1)
+- ⚠️ GPS data storage in `DeviceContext` needs to be updated (Phase 1)
+- ⚠️ GPS data is **NOW included** in crash alert requests (Phase 2 - needs implementation)
 
 **BLE Library**:
 - ✅ Using `react-native-ble-plx` (not `react-native-ble-manager` or `expo-bluetooth`)
@@ -35,7 +37,9 @@
 - ✅ **Rate limiting implemented**: Client-side throttling prevents excessive API calls (configurable interval, default 15 seconds)
 - ✅ **Field name mapping fixed**: Threshold result transformed from camelCase to snake_case for backend compatibility
 - ✅ **API key authentication**: Frontend configured to use `X-API-Key` header with `EXPO_PUBLIC_DEVICE_API_KEY`
-- ✅ **Configurable settings**: User can configure crash alert interval in Settings page (1-300 seconds)
+- ✅ **Backend-stored settings**: Crash alert interval stored in `UserSettings` model (10-60 seconds range)
+- ✅ **Enhanced AI analysis**: Gemini AI now receives both sensor data AND crash event history for better context
+- ✅ **Dynamic context**: Higher interval settings allow more sensor data and crash events to be analyzed
 
 ---
 
@@ -62,7 +66,7 @@
 
 #### Bluetooth Low Energy (BLE)
 - [x] Choose BLE library (✅ Using `react-native-ble-plx` - already implemented)
-- [x] Create `services/bluetooth/bleManager.ts` (✅ Implemented with GPS support)
+- [x] Create `services/bluetooth/bleManager.ts` (✅ Implemented - handles sensor data only, GPS now comes from phone)
   - [x] BLE manager initialization (placeholder)
   - [x] Device scanning functionality (placeholder)
   - [x] Device connection/disconnection (placeholder)
@@ -77,19 +81,30 @@
 - [ ] Implement reconnection logic
 
 #### GPS Integration (Phase 1)
-- [x] Parse GPS data from BLE in `services/bluetooth/bleManager.ts`
-  - [x] Subscribe to GPS data characteristic (`CHAR_GPS_DATA_UUID`)
-  - [x] Parse GPS JSON packets from ESP32 (format: `{type: "gps_data", gps: {fix, satellites, latitude, longitude, altitude}}`)
-  - [x] Handle GPS data parsing errors gracefully
-  - [x] Store GPS data callback similar to sensor data callback
+- [x] Install `expo-location` package for GPS access
+- [x] Create `services/location/locationService.ts`
+  - [x] Request location permissions (optional - user can deny)
+  - [x] Get current GPS location from phone
+  - [x] Start location tracking (continuous updates)
+  - [x] Calculate speed from GPS coordinates (distance/time)
+  - [x] Handle location errors gracefully
+  - [x] Stop location tracking when not needed
 - [x] Update `context/DeviceContext.tsx` to store GPS data
-  - [x] Add `currentGPSData` state (stores latest GPS reading)
-  - [x] Add GPS data callback to BLE manager
-  - [x] Update GPS data state when received from BLE
+  - [x] Add `currentGPSData` state (stores latest GPS reading from phone)
+  - [x] Add `currentSpeed` state (calculated from GPS)
+  - [x] Integrate location service
+  - [x] Update GPS data state when received from location service
   - [x] **Note**: GPS data stored locally only in Tier 1 (not sent to backend until crash detected)
 - [x] Update `types/device.ts` to include GPS data types
-  - [x] Create `GPSData` interface (fix, satellites, latitude, longitude, altitude, timestamp)
+  - [x] Create `GPSData` interface (accuracy, latitude, longitude, altitude, speed, timestamp)
+  - [x] Add `speed` field to GPSData (calculated from GPS coordinates)
+  - [x] Add `speed_change` field to GPSData (sudden deceleration detection)
   - [ ] Add GPS data to `SensorReading` interface (optional, for combined data)
+- [x] Add location permission UI
+  - [x] Request permission on app startup (optional)
+  - [x] Show permission status in settings
+  - [x] Allow user to enable/disable GPS tracking
+  - [x] Handle permission denied gracefully (GPS is optional)
 
 #### Crash Detection Logic
 - [x] Create `services/crash/threshold.ts`
@@ -98,10 +113,14 @@
   - [x] Consecutive trigger detection logic (fixed version)
   - [x] Severity calculation
   - [x] Trigger type determination
+  - [ ] Add speed-based threshold detection (optional - for immediate alerts)
 - [x] Create `services/crash/calculator.ts`
   - [x] `calculateGForce()` function (with proper unit conversion)
   - [x] `calculateTilt()` function (roll and pitch)
   - [x] `isTiltExceeded()` helper function
+  - [x] `calculateSpeed()` function (from GPS coordinates - distance/time)
+  - [x] `calculateSpeedChange()` function (sudden deceleration detection)
+  - [x] `isSuddenDeceleration()` helper function
 
 #### Crash Detection Hook (Tier 1 Only)
 - [x] Create `hooks/useCrashDetection.ts`
@@ -140,7 +159,10 @@
   - [x] Display real-time sensor data
   - [x] Show BLE connection status
   - [x] Display G-force and tilt values
-  - [ ] Display GPS data (latitude, longitude, fix status, satellites) (optional)
+  - [ ] Display GPS data (latitude, longitude, accuracy, speed) (optional)
+  - [ ] Display speed from GPS (km/h or mph)
+  - [ ] Show location permission status
+  - [ ] Show GPS tracking status (enabled/disabled)
 
 #### Integration (Tier 1)
 - [x] Integrate BLE data flow with crash detection hook (✅ Integrated - ready when BLE is implemented)
@@ -157,32 +179,28 @@
   - [x] `CRASH_DETECTION_CONFIG` constants
   - [x] BLE UUIDs (make configurable)
   - [x] Threshold values
-  - [x] **Crash alert interval** (✅ Default: 15 seconds, configurable via settings)
+  - [x] **Crash alert interval** (✅ Default: 15 seconds, stored in backend UserSettings model, range: 10-60 seconds)
 
 ### ESP32 Device Configuration (Phase 1)
 
-- [x] Setup ESP32 development environment (✅ GPS already implemented)
+- [x] Setup ESP32 development environment
 - [x] Install MPU6050 library
 - [x] Configure BLE
   - [x] Set BLE service UUID
   - [x] Set sensor data characteristic UUID
-  - [x] Set GPS data characteristic UUID (`CHAR_GPS_DATA_UUID`)
   - [x] Configure device name (e.g., "Sentry Device")
 - [x] Implement sensor reading
   - [x] Read MPU6050 accelerometer data
   - [x] Calculate roll, pitch, tilt_detected
   - [x] Format data as JSON
-- [x] Implement GPS reading (✅ Already implemented)
-  - [x] Initialize GPS module (Neo 6M)
-  - [x] Read GPS data (latitude, longitude, altitude, satellites, fix status)
-  - [x] Update GPS data continuously
 - [x] Implement BLE transmission
   - [x] Send sensor data every 2 seconds
-  - [x] Send GPS data every 2 seconds (along with sensor data)
   - [x] Handle BLE connection/disconnection
   - [x] Error handling for sensor read failures
-- [ ] Test BLE communication with mobile app (including GPS data)
+- [ ] Test BLE communication with mobile app
 - [ ] Optimize battery usage
+
+**Note**: GPS data is now collected from the phone (React Native app), not from ESP32 device. This provides more accurate location data and allows speed calculation.
 
 ### Phase 1 Testing
 
@@ -199,13 +217,14 @@
 ### Phase 1 Completion Criteria
 
 - [ ] ESP32 device sends sensor data via BLE every 2 seconds
-- [x] ESP32 device sends GPS data via BLE every 2 seconds (✅ Already implemented)
 - [ ] Mobile app receives and parses BLE sensor data
-- [x] Mobile app receives and parses BLE GPS data (stored locally only)
-- [ ] Threshold detection works correctly (G-force and tilt)
+- [ ] Mobile app collects GPS data from phone (via `expo-location`)
+- [ ] Location permissions requested (optional - user can deny)
+- [ ] Speed calculated from GPS coordinates (client-side)
+- [ ] GPS data stored in DeviceContext (local storage only in Tier 1)
+- [ ] Threshold detection works correctly (G-force, tilt, and optionally speed)
 - [ ] Console logs show threshold exceeded events with details
-- [ ] UI displays crash alerts and sensor data
-- [x] GPS data stored in DeviceContext (local storage only in Tier 1)
+- [ ] UI displays crash alerts, sensor data, and GPS/speed (if available)
 - [ ] Basic error handling in place
 - [ ] Tier 1 testing completed
 - [ ] **Note**: Notifications will be implemented in Phase 2
@@ -215,13 +234,13 @@
 
 - [x] Backend receives crash alerts from mobile app (with GPS data) (✅ Schema and controller updated)
 - [x] Gemini AI analyzes crash data and provides confirmation (✅ Already implemented)
-- [x] CrashEvent records created in database (with GPS location) (✅ GPS fields added, migration needed)
+- [x] CrashEvent records created in database (with GPS location) for all AI analyses - both confirmed crashes AND false positives (✅ GPS fields added, `is_confirmed_crash` field distinguishes them)
 - [x] FCM push notifications sent on confirmed crashes (with GPS location) (✅ GPS added to notification payload)
 - [x] GPS location sent to loved ones when crash confirmed (✅ `notify_loved_ones_with_gps()` created)
 - [x] Frontend displays AI analysis results (✅ CrashAlert component enhanced with AI display)
 - [ ] User feedback mechanism working (⚠️ Not yet implemented)
 - [ ] Complete end-to-end flow tested (⚠️ Testing needed)
-- [ ] False positive reduction verified (⚠️ Testing needed)
+- [ ] False positive reduction verified (⚠️ Testing needed - Note: false positives are now stored in database with `is_confirmed_crash=False` for analytics and model improvement)
 
 ---
 
@@ -237,30 +256,37 @@
   - [x] Version: `httpx>=0.27.0,<1.0.0`
 
 #### Models
-- [ ] Create `device/models/sensor_data.py` (if not exists)
-  - [ ] `SensorData` model for storing sensor readings
-  - [ ] Timestamp indexing for efficient queries
-  - [ ] Device relationship
-  - [ ] Fields: device_id, ax, ay, az, roll, pitch, tilt_detected, timestamp
+- [x] Create `device/models/sensor_data.py` (✅ Already exists)
+  - [x] `SensorData` model for storing sensor readings
+  - [x] Timestamp indexing for efficient queries
+  - [x] Device relationship
+  - [x] Fields: device_id, ax, ay, az, roll, pitch, tilt_detected, timestamp
   - [ ] Add GPS fields: latitude, longitude, altitude, gps_fix, satellites (optional - store GPS with sensor data)
 - [x] Create `device/models/crash_event.py` (✅ Already exists)
   - [x] `CrashEvent` model with all required fields
   - [x] Database indexes for frequently queried fields
   - [x] Model Meta configuration
   - [x] Fields: device_id, user, crash_timestamp, is_confirmed_crash, confidence_score, severity, etc.
-  - [x] Add GPS fields: crash_latitude, crash_longitude, crash_altitude, gps_fix_at_crash, satellites_at_crash (✅ Added)
+  - [x] Add GPS fields: crash_latitude, crash_longitude, crash_altitude, gps_accuracy_at_crash (✅ Added)
+  - [x] Add speed fields: speed_at_crash (m/s), speed_change_at_crash (m/s²), max_speed_before_crash (m/s)
 - [x] Create `device/models/device_token.py` (for FCM tokens) (✅ Already exists)
   - [x] `DeviceToken` model
   - [x] User/device relationship
   - [x] Token refresh mechanism
   - [x] Platform field (iOS/Android)
-- [ ] Create and run migrations (⚠️ Run: `python manage.py makemigrations device --name add_gps_fields_to_crash_event`)
+- [x] Create `core/models/user_settings.py` (✅ COMPLETED - Required for backend-stored crash alert interval)
+  - [x] `UserSettings` model with OneToOneField to User
+  - [x] `crash_alert_interval_seconds` field (IntegerField, default=15, range: 10-60)
+  - [x] Validation: enforce 10-60 second range
+  - [x] Index on user field for efficient queries
+- [ ] Create and run migrations (⚠️ Run: `python manage.py makemigrations core --name add_user_settings` and `python manage.py makemigrations device --name add_gps_fields_to_crash_event`)
 
 #### Schemas
 - [x] Create `device/schemas/crash_schema.py` (✅ Already exists)
   - [x] `CrashAlertRequest` schema
-    - [x] Add GPS data fields (latitude, longitude, altitude, gps_fix, satellites) (✅ Added GPSDataSchema)
-    - [x] GPS data optional (may not have fix at crash time) (✅ Added as optional)
+    - [x] Add GPS data fields (latitude, longitude, altitude, accuracy, speed) (✅ Added GPSDataSchema)
+    - [x] GPS data optional (may not have location permission or fix at crash time) (✅ Added as optional)
+    - [x] Add speed fields to GPSDataSchema (speed, speed_change)
   - [x] `CrashAlertResponse` schema (✅ Already exists)
   - [x] Field validators (✅ Already implemented)
 - [x] Create `device/schemas/fcm_schema.py` (✅ Implemented)
@@ -277,8 +303,22 @@
   - [x] Follow backend guide conventions (import order, type hints, docstrings) (✅ Follows conventions)
   - [x] Error handling with proper HTTP errors (✅ Already implemented)
   - [x] Transaction management for multi-step operations (✅ Already implemented)
-  - [x] Store GPS location in CrashEvent when crash confirmed (✅ Added GPS field storage)
+  - [x] Store GPS location in CrashEvent for all AI analyses (both confirmed crashes and false positives) (✅ Added GPS field storage)
+  - [x] Store speed data in CrashEvent (speed_at_crash, speed_change_at_crash, max_speed_before_crash)
+  - [x] Store all AI analysis results (confirmed crashes AND false positives) using `is_confirmed_crash` field to distinguish (✅ Implemented - all analyses stored)
   - [x] Send GPS location to loved ones when crash confirmed (via FCM notification) (✅ Added loved ones notification)
+  - [x] **Fetch user's crash alert interval from UserSettings** (✅ COMPLETED - Required for dynamic context)
+  - [x] **Calculate dynamic lookback seconds based on interval** (✅ COMPLETED - Higher interval = more context)
+    - [x] Formula: `lookback_seconds = min(30 + (interval - 10) * 3, 180)`
+    - [x] Example: 10s interval = 30s lookback, 30s interval = 90s lookback, 60s interval = 180s lookback
+  - [x] **Retrieve recent crash events for AI context** (✅ COMPLETED - Include crash event history)
+    - [x] Query recent crash events (1-3 events based on interval: `max(1, interval // 20)`)
+    - [x] Include: is_confirmed_crash, confidence_score, severity, crash_type, max_g_force, crash_timestamp
+- [x] Create `core/controllers/user_settings_controller.py` (✅ COMPLETED - Required for settings management)
+  - [x] `get_user_settings()` function - Get user's crash alert interval
+  - [x] `update_user_settings()` function - Update crash alert interval (validate 10-60 range)
+  - [x] Error handling with proper HTTP errors
+  - [x] Uses JWT authentication (via user router)
 - [ ] Create `device/controllers/device_controller.py` (if not exists)
   - [ ] Device data reception endpoint
 - [x] Create `device/controllers/fcm_controller.py` (✅ Implemented)
@@ -288,18 +328,30 @@
   - [x] Uses JWT authentication (via mobile router)
 
 #### Services
-- [ ] Create `device/services/crash_detector.py` (or use utils)
-  - [ ] `get_recent_sensor_data()` function
-  - [ ] Query last N seconds of sensor data from database
-  - [ ] Format data for AI analysis
+- [x] Create `device/services/crash_detector.py` (✅ Already exists)
+  - [x] `get_recent_sensor_data()` function (✅ Implemented)
+  - [x] Query last N seconds of sensor data from database (✅ Implemented)
+  - [x] Format data for AI analysis (✅ Returns list of dicts)
   - [ ] Include GPS data in sensor data queries (if stored with sensor data)
-- [ ] Create `core/ai/gemini_service.py` (or in appropriate location)
-  - [ ] `GeminiService` class
-  - [ ] `format_sensor_data_for_ai()` method
-  - [ ] `analyze_crash_data()` method
-  - [ ] Prompt engineering for crash detection
-  - [ ] JSON response parsing
-  - [ ] Error handling and retry logic
+- [x] Create `core/ai/gemini_service.py` (✅ Already exists)
+  - [x] `GeminiService` class (✅ Implemented)
+  - [x] `format_sensor_data_for_ai()` method (✅ Implemented)
+  - [x] `analyze_crash_data()` method (✅ Implemented)
+  - [x] Prompt engineering for crash detection (✅ Implemented)
+  - [x] JSON response parsing (✅ Implemented)
+  - [x] Error handling and retry logic (✅ Implemented)
+  - [x] **Update `format_sensor_data_for_ai()` to accept crash events** (✅ COMPLETED - Required for enhanced analysis)
+    - [x] Add `crash_events` parameter (list of crash event dicts)
+    - [x] Format crash event history in prompt (show confirmed vs false positives, severity, confidence)
+  - [x] **Update `analyze_crash_data()` to accept crash events** (✅ COMPLETED - Required for enhanced analysis)
+    - [x] Add `crash_events` parameter
+    - [x] Pass crash events to `format_sensor_data_for_ai()`
+    - [x] Update prompt to mention crash event history context
+    - [x] Instruct AI to consider recent crash patterns (many false positives = pattern, recent confirmed = follow-up impact)
+  - [ ] **Update `format_sensor_data_for_ai()` to include speed data** (Required for enhanced analysis)
+    - [ ] Include GPS speed in sensor data context
+    - [ ] Include speed change calculations (sudden deceleration)
+    - [ ] Update prompt to mention speed as additional indicator
 - [x] Create `device/services/fcm_service.py` (✅ Implemented - using Expo Push API)
   - [x] `FCMService` class
   - [x] Expo Push Notification API implementation (using `httpx`)
@@ -324,22 +376,30 @@
   - [x] `POST /api/v1/device/mobile/fcm/token` - Register Expo Push Token
   - [x] `POST /api/v1/device/mobile/fcm/test` - Send test push notification
   - [x] Both use JWT authentication (require logged-in user)
+- [x] Update `core/router/user_router.py` (✅ COMPLETED - Required for settings endpoints)
+  - [x] `GET /api/v1/core/user/settings` - Get user settings (crash alert interval)
+  - [x] `PUT /api/v1/core/user/settings` - Update user settings (crash alert interval)
+  - [x] Both use JWT authentication (require logged-in user)
+  - [x] Validate interval range (10-60 seconds)
 
 #### Utilities
 - [x] Create `device/utils/crash_utils.py` (if complex logic needed) (✅ Created with `notify_loved_ones_with_gps()`)
 - [ ] Create `device/utils/sensor_data_utils.py` (if complex logic needed)
 
 #### Storage & Configuration
-- [x] Create storage functions for crash alert interval (✅ `lib/storage.ts`)
-  - [x] `storeCrashAlertInterval()` - Store interval setting in SecureStore
-  - [x] `getStoredCrashAlertInterval()` - Retrieve interval setting from SecureStore
-  - [x] Default value: 15 seconds (from `CRASH_DETECTION_CONFIG`)
+- [x] **Migrate crash alert interval to backend** (✅ COMPLETED - Replace SecureStore with backend API)
+  - [x] Remove SecureStore functions (`storeCrashAlertInterval`, `getStoredCrashAlertInterval`) - Note: Functions still exist but are no longer used
+  - [x] Create API service functions in `services/api/user.ts`:
+    - [x] `getUserSettings()` - Fetch settings from backend
+    - [x] `updateUserSettings()` - Update settings via backend API
+  - [x] Update `useCrashDetection` hook to fetch interval from backend (or use default)
+  - [x] **Note**: Frontend still needs to respect interval for rate limiting, but value comes from backend
 
 #### Settings & Configuration
 - [x] Add Gemini API settings to `sentry/settings/config.py` (✅ Already implemented)
   - [x] `gemini_api_key` field (✅ Already exists)
   - [x] `gemini_model` field (✅ Already exists)
-  - [x] `gemini_analysis_lookback_seconds` field (✅ Already exists)
+  - [x] `gemini_analysis_lookback_seconds` field (✅ Already exists - Note: Now dynamically calculated based on user interval)
 - [x] Add Push Notification settings to `sentry/settings/config.py` (✅ Implemented)
   - [x] `expo_push_api_url` field (default: "https://exp.host/--/api/v2/push/send")
   - [x] `fcm_credentials_path` field (deprecated - kept for backward compatibility)
@@ -347,6 +407,10 @@
   - [x] `crash_confidence_threshold` field
   - [x] `crash_high_severity_g_force` field
   - [x] `crash_medium_severity_g_force` field
+- [x] **User Settings Model** (✅ COMPLETED - Required for backend-stored interval)
+  - [x] `UserSettings.crash_alert_interval_seconds` field (IntegerField, default=15)
+  - [x] Validation: Must be between 10 and 60 seconds
+  - [x] OneToOneField relationship with User model
 
 ### ESP32 Device Configuration
 
@@ -401,6 +465,7 @@
   - [x] Add mutation call to send alert to backend (✅ Enabled `useSendCrashAlert` mutation)
   - [x] **Import `useDevice` hook to access `currentGPSData`** (✅ Added)
   - [x] Include GPS data from DeviceContext in crash alert request (✅ Added `gps_data: currentGPSData`)
+  - [x] Include speed data in crash alert request (speed, speed_change from GPS calculations)
   - [x] Handle AI confirmation response (✅ Added onSuccess/onError handlers)
   - [x] Update UI based on AI analysis (✅ CrashAlert component updated)
   - [x] Show AI reasoning and confidence (✅ Enhanced display with color coding)
@@ -439,9 +504,19 @@
   - [ ] Add user feedback buttons (true/false positive) (⚠️ Optional - can be added later)
 - [x] Update `app/(tabs)/settings.tsx`
   - [x] **Crash Detection settings section** (✅ Added configurable crash alert interval)
-  - [x] Number input for interval configuration (1-300 seconds)
-  - [x] Real-time interval updates (stored in SecureStore)
-  - [x] Visual feedback (current value display, range validation)
+  - [x] **Update to use backend API** (✅ COMPLETED - Replace SecureStore with backend)
+    - [x] Fetch interval from backend on mount (`getUserSettings()`)
+    - [x] Save interval to backend on change (`updateUserSettings()`)
+    - [x] Number input for interval configuration (10-60 seconds range)
+    - [x] Real-time validation (show error if outside 10-60 range)
+    - [x] Visual feedback (current value display, range validation, loading states)
+    - [x] Error handling (revert on save failure)
+  - [x] **Location Services settings section** (Optional GPS tracking)
+    - [x] Request location permission toggle
+    - [x] Show current permission status
+    - [x] Enable/disable GPS tracking toggle
+    - [x] Show GPS accuracy indicator
+    - [x] Display current speed (if GPS enabled)
 - [ ] Create `components/crash/CrashHistory.tsx` (optional)
   - [ ] Display crash event history
   - [ ] Filter by date range
@@ -500,11 +575,13 @@
 
 #### End-to-End Testing (Phase 2)
 - [ ] Test complete flow: BLE → Threshold → API → AI → FCM
-- [ ] Test GPS data flow: ESP32 → BLE → Client (stored) → Backend (on crash) → Loved Ones
+- [ ] Test GPS data flow: Phone → Location Service → Client (stored) → Backend (on crash) → Loved Ones
 - [ ] Test false positive scenarios (AI correctly identifies false alarms)
 - [ ] Test offline handling (queue alerts when offline)
 - [ ] Test BLE disconnection during crash
-- [ ] Test GPS data availability (with fix and without fix scenarios)
+- [ ] Test GPS data availability (with permission and without permission scenarios)
+- [ ] Test speed calculation accuracy
+- [ ] Test speed-based threshold detection
 - [ ] Performance testing (response times)
 - [ ] Load testing (multiple simultaneous alerts)
 - [ ] Test AI confirmation accuracy
@@ -534,6 +611,8 @@
 - [ ] Secure BLE communication (if needed)
 - [ ] Validate all API inputs
 - [x] **API key authentication** (✅ Device endpoints use `X-API-Key` header with `EXPO_PUBLIC_DEVICE_API_KEY`)
+- [ ] **Location permissions**: GPS tracking is optional - users can deny permission, system works without GPS
+- [ ] **GPS data privacy**: GPS data only sent to backend when crash detected, not continuously transmitted
 
 ### Deployment
 
@@ -1212,6 +1291,73 @@ export function isTiltExceeded(
 ): boolean {
   return Math.abs(roll) >= threshold || Math.abs(pitch) >= threshold;
 }
+
+/**
+ * Calculate speed from GPS coordinates (distance/time)
+ * Uses haversine formula to calculate distance between two GPS points
+ * 
+ * @param currentLat - Current latitude
+ * @param currentLon - Current longitude
+ * @param previousLat - Previous latitude
+ * @param previousLon - Previous longitude
+ * @param timeDelta - Time difference in seconds
+ * @returns Speed in m/s (null if invalid data)
+ */
+export function calculateSpeed(
+  currentLat: number,
+  currentLon: number,
+  previousLat: number | null,
+  previousLon: number | null,
+  timeDelta: number
+): number | null {
+  if (!previousLat || !previousLon || timeDelta <= 0) return null;
+
+  // Haversine formula to calculate distance in meters
+  const R = 6371000; // Earth radius in meters
+  const dLat = (currentLat - previousLat) * Math.PI / 180;
+  const dLon = (currentLon - previousLon) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(previousLat * Math.PI / 180) * Math.cos(currentLat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in meters
+
+  const speed = distance / timeDelta; // Speed in m/s
+  return speed;
+}
+
+/**
+ * Calculate speed change (acceleration/deceleration) from speed values
+ * 
+ * @param currentSpeed - Current speed in m/s
+ * @param previousSpeed - Previous speed in m/s
+ * @param timeDelta - Time difference in seconds
+ * @returns Speed change in m/s² (negative = deceleration, positive = acceleration)
+ */
+export function calculateSpeedChange(
+  currentSpeed: number,
+  previousSpeed: number,
+  timeDelta: number
+): number | null {
+  if (timeDelta <= 0) return null;
+  return (currentSpeed - previousSpeed) / timeDelta; // Speed change in m/s²
+}
+
+/**
+ * Check if speed change indicates sudden deceleration (potential crash)
+ * 
+ * @param speedChange - Speed change in m/s²
+ * @param threshold - Threshold for sudden deceleration (default: -10 m/s²)
+ * @returns True if speed change exceeds threshold (sudden deceleration)
+ */
+export function isSuddenDeceleration(
+  speedChange: number | null,
+  threshold: number = -10.0
+): boolean {
+  if (speedChange === null) return false;
+  return speedChange <= threshold; // Negative value = deceleration
+}
 ```
 
 ### React Hook for Crash Detection
@@ -1233,7 +1379,7 @@ import { useDevice } from '@/context/DeviceContext';
 import { useCrash } from '@/context/CrashContext';
 import { useSendCrashAlert } from '@/hooks/mutations/useSendCrashAlert';
 import { CRASH_DETECTION_CONFIG } from '@/utils/constants';
-import { getStoredCrashAlertInterval } from '@/lib/storage';
+import { getUserSettings } from '@/services/api/user';
 
 interface UseCrashDetectionOptions {
   enabled?: boolean;
@@ -1275,11 +1421,18 @@ export function useCrashDetection(
   // Load crash alert interval from storage on mount and periodically refresh
   useEffect(() => {
     const loadInterval = async () => {
-      const storedInterval = await getStoredCrashAlertInterval();
-      if (storedInterval) {
-        alertIntervalRef.current = storedInterval * 1000; // Convert to milliseconds
-      } else {
-        // Use default if no stored value
+      try {
+        // Fetch from backend API instead of SecureStore
+        const settings = await getUserSettings();
+        if (settings.crash_alert_interval_seconds) {
+          alertIntervalRef.current = settings.crash_alert_interval_seconds * 1000; // Convert to milliseconds
+        } else {
+          // Use default if no value
+          alertIntervalRef.current = CRASH_DETECTION_CONFIG.crashAlertIntervalSeconds * 1000;
+        }
+      } catch (error) {
+        console.error('Error loading crash alert interval:', error);
+        // Use default on error
         alertIntervalRef.current = CRASH_DETECTION_CONFIG.crashAlertIntervalSeconds * 1000;
       }
     };
@@ -1425,93 +1578,253 @@ export async function sendCrashAlert(
 
 ### Overview
 
-GPS location data is integrated throughout the two-tier crash detection system to provide location information when crashes are detected. The GPS data flow is designed to:
+GPS location data is integrated throughout the two-tier crash detection system to provide location information and speed calculations when crashes are detected. The GPS data is collected from the phone (React Native app) using `expo-location`, not from the ESP32 device. The GPS data flow is designed to:
 
-1. **Tier 1 (Client)**: Store GPS data locally, only sending to backend when crash is detected
-2. **Tier 2 (Backend)**: Store GPS location with crash events and send to loved ones when crash confirmed
+1. **Tier 1 (Client)**: Collect GPS data from phone, calculate speed, store locally, only sending to backend when crash is detected
+2. **Tier 2 (Backend)**: Store GPS location and speed with crash events, use in AI analysis, and send to loved ones when crash confirmed
 
 ### GPS Data Flow
 
 ```
-ESP32 Device (GPS Module)
+Mobile Phone (React Native App)
     │
-    │ Every 2 seconds
-    ▼
-BLE Transmission (GPS Data)
+    │ Using expo-location
+    │ Request location permission (optional)
     │
-    │ {type: "gps_data", gps: {fix, satellites, latitude, longitude, altitude}}
+    │ Continuous GPS updates
+    │ Calculate speed from coordinates
     ▼
 Mobile App (Tier 1 - Client)
     │
-    │ Parse GPS data from BLE
-    │ Store in DeviceContext (local only)
+    │ Store GPS data in DeviceContext (local only)
+    │ Calculate speed: distance/time between coordinates
+    │ Speed-based threshold detection (optional immediate alert)
     │
     │ When crash detected (threshold exceeded)
     ▼
 Backend API (Tier 2)
     │
-    │ Store GPS in CrashEvent
+    │ Store GPS + speed in CrashEvent
+    │ AI analysis uses speed data for better accuracy
     │ If crash confirmed by AI
     ▼
 Loved Ones Notification
     │
-    │ FCM Push Notification with GPS location
-    │ (latitude, longitude, map link)
+    │ FCM Push Notification with GPS location + speed
+    │ (latitude, longitude, speed, map link)
     ▼
 Loved Ones (Emergency Contacts)
 ```
 
-### Phase 1: GPS Data Reception and Storage (Client-Side Only)
+### Phase 1: GPS Data Collection and Storage (Client-Side Only)
 
-#### ESP32 Device (Already Implemented ✅)
+#### Location Service Implementation
 
-The ESP32 device already sends GPS data via BLE every 2 seconds:
+**Dependencies**:
+```bash
+npx expo install expo-location
+```
 
-**Format**: JSON packet
-```json
-{
-  "type": "gps_data",
-  "sequence": 123,
-  "timestamp": 1234567890,
-  "gps": {
-    "fix": true,
-    "satellites": 8,
-    "latitude": 37.7749,
-    "longitude": -122.4194,
-    "altitude": 100.5
-  },
-  "crc": 12345
+**File**: `frontend/services/location/locationService.ts`
+
+```typescript
+import * as Location from 'expo-location';
+
+export interface GPSData {
+  latitude: number | null;
+  longitude: number | null;
+  altitude: number | null;
+  accuracy: number | null; // GPS accuracy in meters
+  speed: number | null; // Speed in m/s (calculated from GPS)
+  timestamp: string;
+}
+
+export class LocationService {
+  private watchPositionSubscription: Location.LocationSubscription | null = null;
+  private lastLocation: Location.LocationObject | null = null;
+  private lastTimestamp: number = 0;
+  private onLocationUpdate?: (data: GPSData) => void;
+
+  /**
+   * Request location permissions (optional - user can deny)
+   */
+  async requestPermissions(): Promise<boolean> {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    return status === 'granted';
+  }
+
+  /**
+   * Check if location permissions are granted
+   */
+  async checkPermissions(): Promise<boolean> {
+    const { status } = await Location.getForegroundPermissionsAsync();
+    return status === 'granted';
+  }
+
+  /**
+   * Calculate speed from GPS coordinates (distance/time)
+   */
+  private calculateSpeed(
+    currentLocation: Location.LocationObject,
+    lastLocation: Location.LocationObject | null,
+    timeDelta: number
+  ): number | null {
+    if (!lastLocation || timeDelta <= 0) return null;
+
+    const distance = Location.distanceBetween(
+      lastLocation.coords.latitude,
+      lastLocation.coords.longitude,
+      currentLocation.coords.latitude,
+      currentLocation.coords.longitude
+    ); // Distance in meters
+
+    const speed = distance / timeDelta; // Speed in m/s
+    return speed;
+  }
+
+  /**
+   * Start location tracking
+   */
+  async startTracking(
+    onUpdate: (data: GPSData) => void,
+    options: Location.LocationOptions = {}
+  ): Promise<boolean> {
+    const hasPermission = await this.requestPermissions();
+    if (!hasPermission) {
+      console.warn('Location permission denied - GPS tracking disabled');
+      return false;
+    }
+
+    this.onLocationUpdate = onUpdate;
+
+    this.watchPositionSubscription = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 1000, // Update every 1 second
+        distanceInterval: 1, // Update every 1 meter
+        ...options,
+      },
+      (location) => {
+        const now = Date.now();
+        const timeDelta = this.lastTimestamp > 0 
+          ? (now - this.lastTimestamp) / 1000 // Convert to seconds
+          : 0;
+
+        const speed = this.calculateSpeed(location, this.lastLocation, timeDelta);
+
+        const gpsData: GPSData = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          altitude: location.coords.altitude,
+          accuracy: location.coords.accuracy,
+          speed: speed, // Calculated speed in m/s
+          timestamp: new Date(location.timestamp).toISOString(),
+        };
+
+        this.onLocationUpdate?.(gpsData);
+        this.lastLocation = location;
+        this.lastTimestamp = now;
+      }
+    );
+
+    return true;
+  }
+
+  /**
+   * Stop location tracking
+   */
+  stopTracking(): void {
+    if (this.watchPositionSubscription) {
+      this.watchPositionSubscription.remove();
+      this.watchPositionSubscription = null;
+    }
+    this.lastLocation = null;
+    this.lastTimestamp = 0;
+  }
+
+  /**
+   * Get current location (one-time)
+   */
+  async getCurrentLocation(): Promise<GPSData | null> {
+    const hasPermission = await this.checkPermissions();
+    if (!hasPermission) return null;
+
+    try {
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      return {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        altitude: location.coords.altitude,
+        accuracy: location.coords.accuracy,
+        speed: location.coords.speed, // Use device-reported speed if available
+        timestamp: new Date(location.timestamp).toISOString(),
+      };
+    } catch (error) {
+      console.error('Error getting current location:', error);
+      return null;
+    }
+  }
 }
 ```
 
-**BLE Characteristic**: `CHAR_GPS_DATA_UUID` = `"0000ff02-0000-1000-8000-00805f9b34fb"`
-
-#### Frontend Implementation (Phase 1)
-
-**1. Parse GPS Data in BLE Manager**
-
-File: `frontend/services/bluetooth/bleManager.ts`
-
-**Note**: GPS parsing is already fully implemented. The BLE manager:
-- Subscribes to `GPS_DATA_CHARACTERISTIC_UUID` characteristic
-- Parses base64-encoded JSON packets from ESP32
-- Handles chunked data with buffer management
-- Validates GPS data structure: `{type: "gps_data", gps: {fix, satellites, latitude, longitude, altitude}}`
-- Provides `setGPSDataCallback()` method for receiving GPS updates
-
-See `frontend/services/bluetooth/bleManager.ts` lines 550-692 for the complete GPS implementation.
-
-**2. Store GPS Data in DeviceContext**
+**2. Update DeviceContext to Store GPS Data**
 
 File: `frontend/context/DeviceContext.tsx`
 
-**Note**: GPS data storage is already fully implemented. The DeviceContext:
-- Stores `currentGPSData` state (type: `GPSData | null`)
-- Sets GPS callback in `startReceiving()` method
-- Updates GPS state when data is received from BLE
-- Clears GPS data on disconnect
+```typescript
+import { LocationService } from '@/services/location/locationService';
 
-See `frontend/context/DeviceContext.tsx` lines 10, 35, 113-126, 189, 234 for the complete implementation.
+interface DeviceContextType {
+  // ... existing fields
+  currentGPSData: GPSData | null;
+  currentSpeed: number | null; // Speed in m/s (converted to km/h for display)
+  isGPSEnabled: boolean;
+  hasLocationPermission: boolean;
+  startGPSTracking: () => Promise<void>;
+  stopGPSTracking: () => void;
+}
+
+export function DeviceProvider({ children }: { children: React.ReactNode }) {
+  const [currentGPSData, setCurrentGPSData] = useState<GPSData | null>(null);
+  const [currentSpeed, setCurrentSpeed] = useState<number | null>(null);
+  const [isGPSEnabled, setIsGPSEnabled] = useState(false);
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const locationServiceRef = useRef(new LocationService());
+
+  const startGPSTracking = useCallback(async () => {
+    const hasPermission = await locationServiceRef.current.checkPermissions();
+    setHasLocationPermission(hasPermission);
+    
+    if (!hasPermission) {
+      const granted = await locationServiceRef.current.requestPermissions();
+      setHasLocationPermission(granted);
+      if (!granted) return;
+    }
+
+    const started = await locationServiceRef.current.startTracking((data) => {
+      setCurrentGPSData(data);
+      setCurrentSpeed(data.speed); // Speed in m/s
+      setIsGPSEnabled(true);
+    });
+
+    if (!started) {
+      setIsGPSEnabled(false);
+    }
+  }, []);
+
+  const stopGPSTracking = useCallback(() => {
+    locationServiceRef.current.stopTracking();
+    setIsGPSEnabled(false);
+    setCurrentGPSData(null);
+    setCurrentSpeed(null);
+  }, []);
+
+  // ... rest of implementation
+}
+```
 
 **3. TypeScript Types**
 
@@ -1519,53 +1832,63 @@ File: `frontend/types/device.ts`
 
 ```typescript
 export interface GPSData {
-  fix: boolean;
-  satellites: number;
   latitude: number | null;
   longitude: number | null;
   altitude: number | null;
+  accuracy: number | null; // GPS accuracy in meters
+  speed: number | null; // Speed in m/s (calculated from GPS coordinates)
   timestamp: string;
 }
 ```
 
-**Note**: In Phase 1, GPS data is stored locally only. It is NOT sent to the backend until a crash is detected (Phase 2).
+**Note**: In Phase 1, GPS data is stored locally only. It is NOT sent to the backend until a crash is detected (Phase 2). GPS tracking is optional - users can deny location permission.
 
 ### Phase 2: GPS Data Transmission and Notification
 
-#### Frontend: Include GPS in Crash Alert
+#### Frontend: Include GPS and Speed in Crash Alert
 
 **Update Crash Detection Hook**
 
 File: `frontend/hooks/useCrashDetection.ts`
 
-**Status**: ⚠️ **Not yet implemented** - This needs to be added in Phase 2.
+**Status**: ⚠️ **Needs implementation** - This needs to be added in Phase 2.
 
 ```typescript
 import { useDevice } from '@/context/DeviceContext';
+import { calculateSpeedChange } from '@/services/crash/calculator';
 
 export function useCrashDetection(
   sensorData: SensorReading | null,
   options: UseCrashDetectionOptions = {}
 ) {
-  const { currentGPSData } = useDevice(); // Get GPS data from context
+  const { currentGPSData, currentSpeed } = useDevice(); // Get GPS data and speed from context
   const sendCrashAlertMutation = useSendCrashAlert();
   
   // ... existing code
   
   if (result.isTriggered) {
-    // Include GPS data in crash alert
+    // Calculate speed change (sudden deceleration)
+    const speedChange = currentSpeed && previousSpeed 
+      ? calculateSpeedChange(currentSpeed, previousSpeed, timeDelta)
+      : null;
+
+    // Include GPS data and speed in crash alert
     sendCrashAlertMutation.mutate({
       device_id: sensorData.device_id,
       sensor_reading: sensorData,
       threshold_result: result,
       timestamp: new Date().toISOString(),
-      gps_data: currentGPSData, // Add GPS data (may be null if no fix)
+      gps_data: currentGPSData ? {
+        ...currentGPSData,
+        speed: currentSpeed, // Speed in m/s
+        speed_change: speedChange, // Speed change in m/s²
+      } : null, // GPS data is optional (may be null if permission denied or no fix)
     });
   }
 }
 ```
 
-**Note**: Currently, `useCrashDetection` doesn't access GPS data. This needs to be updated when implementing Phase 2.
+**Note**: GPS data is optional. If location permission is denied or GPS is unavailable, the crash alert will still be sent without GPS data.
 
 **Update API Types**
 
@@ -1603,8 +1926,12 @@ class CrashEvent(models.Model):
     crash_latitude = models.FloatField(null=True, blank=True)
     crash_longitude = models.FloatField(null=True, blank=True)
     crash_altitude = models.FloatField(null=True, blank=True)
-    gps_fix_at_crash = models.BooleanField(default=False)
-    satellites_at_crash = models.IntegerField(null=True, blank=True)
+    gps_accuracy_at_crash = models.FloatField(null=True, blank=True)  # GPS accuracy in meters
+    
+    # Speed Data at Crash Time
+    speed_at_crash = models.FloatField(null=True, blank=True)  # Speed in m/s
+    speed_change_at_crash = models.FloatField(null=True, blank=True)  # Speed change in m/s² (sudden deceleration)
+    max_speed_before_crash = models.FloatField(null=True, blank=True)  # Maximum speed in last 30 seconds before crash (m/s)
     
     # ... rest of model
 ```
@@ -1625,11 +1952,12 @@ from ninja import Schema
 class GPSDataSchema(Schema):
     """GPS data schema."""
 
-    fix: bool
-    satellites: int
     latitude: float | None
     longitude: float | None
     altitude: float | None
+    accuracy: float | None  # GPS accuracy in meters
+    speed: float | None  # Speed in m/s (calculated from GPS)
+    speed_change: float | None  # Speed change in m/s² (sudden deceleration)
     timestamp: str
 
 class CrashAlertRequest(Schema):
@@ -1695,12 +2023,14 @@ def process_crash_alert(
             with transaction.atomic():
                 crash_event = CrashEvent.objects.create(
                     # ... existing fields
-                    # TODO: Add GPS fields when GPS schema is implemented:
-                    # crash_latitude=data.gps_data.latitude if data.gps_data and data.gps_data.fix else None,
-                    # crash_longitude=data.gps_data.longitude if data.gps_data and data.gps_data.fix else None,
-                    # crash_altitude=data.gps_data.altitude if data.gps_data and data.gps_data.fix else None,
-                    # gps_fix_at_crash=data.gps_data.fix if data.gps_data else False,
-                    # satellites_at_crash=data.gps_data.satellites if data.gps_data else None,
+                    # GPS and speed fields
+                    crash_latitude=data.gps_data.latitude if data.gps_data else None,
+                    crash_longitude=data.gps_data.longitude if data.gps_data else None,
+                    crash_altitude=data.gps_data.altitude if data.gps_data else None,
+                    gps_accuracy_at_crash=data.gps_data.accuracy if data.gps_data else None,
+                    speed_at_crash=data.gps_data.speed if data.gps_data else None,  # Speed in m/s
+                    speed_change_at_crash=data.gps_data.speed_change if data.gps_data else None,  # Speed change in m/s²
+                    max_speed_before_crash=None,  # Will be calculated from recent sensor data if available
                 )
                 
                 # Send notifications to loved ones with GPS location
@@ -1858,31 +2188,42 @@ def notify_loved_ones_with_gps(
 ### GPS Data Storage Strategy
 
 **Option 1: Store GPS with Sensor Data (Recommended)**
-- Store GPS data in `SensorData` model alongside sensor readings
-- Allows historical GPS tracking
-- Useful for AI analysis context
+- Store GPS data and speed in `SensorData` model alongside sensor readings
+- Allows historical GPS tracking and speed analysis
+- Useful for AI analysis context (speed patterns, sudden deceleration)
+- GPS data collected from phone (React Native app), not ESP32
 
 **Option 2: Store GPS Only in CrashEvent**
-- Store GPS only when crash detected
+- Store GPS and speed only when crash detected
 - Simpler, less storage
-- Sufficient for crash notifications
+- Sufficient for crash notifications and AI analysis
 
-**Recommendation**: Use Option 1 for comprehensive tracking, but ensure GPS is always included in CrashEvent for emergency notifications.
+**Recommendation**: Use Option 1 for comprehensive tracking, but ensure GPS and speed are always included in CrashEvent for emergency notifications and AI analysis. Speed data helps AI distinguish between crashes and false positives (sudden deceleration = crash indicator).
 
 ### Testing GPS Integration
 
-1. **Test GPS Data Reception (Phase 1)**
-   - Verify GPS data parsed from BLE
+1. **Test GPS Data Collection (Phase 1)**
+   - Verify location permission request works
+   - Verify GPS data collected from phone using `expo-location`
    - Verify GPS data stored in DeviceContext
+   - Verify speed calculation from GPS coordinates
+   - Test with location permission granted and denied
    - Test with GPS fix and without fix
+   - Test speed calculation accuracy
 
-2. **Test GPS in Crash Alert (Phase 2)**
-   - Verify GPS included in crash alert request
-   - Verify GPS stored in CrashEvent
-   - Test with null GPS data (no fix)
+2. **Test Speed Calculation (Phase 1)**
+   - Verify speed calculated correctly from GPS coordinates
+   - Verify speed change (sudden deceleration) detection
+   - Test speed-based threshold detection (optional)
 
-3. **Test Loved Ones Notification**
-   - Verify loved ones receive GPS location
+3. **Test GPS in Crash Alert (Phase 2)**
+   - Verify GPS and speed included in crash alert request
+   - Verify GPS and speed stored in CrashEvent
+   - Test with null GPS data (permission denied or no fix)
+   - Verify AI analysis uses speed data for better accuracy
+
+4. **Test Loved Ones Notification**
+   - Verify loved ones receive GPS location and speed
    - Verify map link works correctly
    - Test with multiple loved ones
 
@@ -1892,6 +2233,12 @@ def notify_loved_ones_with_gps(
 
 ### Purpose
 Perform intelligent crash analysis using Gemini AI API to confirm or deny threshold triggers, reducing false positives and providing detailed crash insights.
+
+**Important**: All AI analysis results (both confirmed crashes and false positives) are stored in the database using the `CrashEvent` model. The `is_confirmed_crash` field distinguishes between confirmed crashes (`True`) and false positives (`False`). This approach enables:
+- **Analytics**: Track false positive rates over time
+- **Model Improvement**: Historical data for training/refining AI models and thresholds
+- **User Feedback**: Correlate user feedback with stored false positive determinations
+- **System Monitoring**: Monitor AI accuracy and system performance
 
 ### Implementation Location
 **Backend**: `backend/sentry/`
@@ -1911,9 +2258,11 @@ Perform intelligent crash analysis using Gemini AI API to confirm or deny thresh
    - Send to Gemini API
    - Parse JSON response
 
-4. **Process AI Response**
-   - If confirmed crash → Create CrashEvent, send FCM push notification
-   - If false positive → Log for learning, optionally notify user
+5. **Process AI Response**
+   - Create CrashEvent for ALL AI analyses (both confirmed crashes AND false positives)
+   - Set `is_confirmed_crash=True` for confirmed crashes, `False` for false positives
+   - If confirmed crash → Send FCM push notification, notify loved ones
+   - If false positive → Store in database for analytics/improvement (no notifications sent)
 
 5. **Send Push Notification via FCM**
    - High severity → Immediate notification
@@ -1955,6 +2304,7 @@ from device.models import CrashEvent
 from device.schemas.crash_schema import CrashAlertRequest, CrashAlertResponse
 from device.services.crash_detector import CrashDetectorService
 from device.services.fcm_service import FCMService
+from device.utils.crash_utils import notify_loved_ones_with_gps
 
 logger = logging.getLogger("device")
 
@@ -2000,46 +2350,51 @@ def process_crash_alert(
             context_seconds=30
         )
         
-        # Create CrashEvent if confirmed (use transaction for multi-step operations)
-        crash_event = None
-        if ai_analysis['is_crash']:
-            with transaction.atomic():
-                crash_event = CrashEvent.objects.create(
+        # Create CrashEvent for ALL AI analyses (both confirmed crashes and false positives)
+        # This allows tracking false positive rates, model improvement, and user feedback correlation
+        # Use is_confirmed_crash field to distinguish confirmed crashes from false positives
+        with transaction.atomic():
+            crash_event = CrashEvent.objects.create(
+                device_id=data.device_id,
+                user=request.user if hasattr(request, 'user') and request.user.is_authenticated else None,
+                crash_timestamp=data.timestamp,
+                is_confirmed_crash=ai_analysis['is_crash'],  # False for false positives, True for confirmed crashes
+                confidence_score=ai_analysis['confidence'],
+                severity=ai_analysis['severity'],
+                crash_type=ai_analysis['crash_type'],
+                ai_reasoning=ai_analysis['reasoning'],
+                key_indicators=ai_analysis['key_indicators'],
+                false_positive_risk=ai_analysis['false_positive_risk'],
+                max_g_force=data.threshold_result.g_force,
+                impact_acceleration={
+                    'ax': data.sensor_reading.ax,
+                    'ay': data.sensor_reading.ay,
+                    'az': data.sensor_reading.az,
+                },
+                final_tilt={
+                    'roll': data.sensor_reading.roll,
+                    'pitch': data.sensor_reading.pitch,
+                },
+                # GPS fields
+                crash_latitude=data.gps_data.latitude if data.gps_data and data.gps_data.fix else None,
+                crash_longitude=data.gps_data.longitude if data.gps_data and data.gps_data.fix else None,
+                crash_altitude=data.gps_data.altitude if data.gps_data and data.gps_data.fix else None,
+                gps_fix_at_crash=data.gps_data.fix if data.gps_data else False,
+                satellites_at_crash=data.gps_data.satellites if data.gps_data else None,
+            )
+            
+            # Only send FCM push notifications for CONFIRMED crashes (not false positives)
+            if ai_analysis['is_crash'] and ai_analysis['severity'] in ['high', 'medium']:
+                fcm_service.send_crash_notification(
                     device_id=data.device_id,
-                    user=request.user if hasattr(request, 'user') and request.user.is_authenticated else None,
-                    crash_timestamp=data.timestamp,
-                    is_confirmed_crash=True,
-                    confidence_score=ai_analysis['confidence'],
-                    severity=ai_analysis['severity'],
-                    crash_type=ai_analysis['crash_type'],
-                    ai_reasoning=ai_analysis['reasoning'],
-                    key_indicators=ai_analysis['key_indicators'],
-                    false_positive_risk=ai_analysis['false_positive_risk'],
-                    max_g_force=data.threshold_result.g_force,
-                    impact_acceleration={
-                        'ax': data.sensor_reading.ax,
-                        'ay': data.sensor_reading.ay,
-                        'az': data.sensor_reading.az,
-                    },
-                    final_tilt={
-                        'roll': data.sensor_reading.roll,
-                        'pitch': data.sensor_reading.pitch,
-                    },
-                    # GPS fields
-                    crash_latitude=data.gps_data.latitude if data.gps_data and data.gps_data.fix else None,
-                    crash_longitude=data.gps_data.longitude if data.gps_data and data.gps_data.fix else None,
-                    crash_altitude=data.gps_data.altitude if data.gps_data and data.gps_data.fix else None,
-                    gps_fix_at_crash=data.gps_data.fix if data.gps_data else False,
-                    satellites_at_crash=data.gps_data.satellites if data.gps_data else None,
+                    crash_event=crash_event,
+                    ai_analysis=ai_analysis
                 )
-                
-                # Send FCM push notification
-                if ai_analysis['severity'] in ['high', 'medium']:
-                    fcm_service.send_crash_notification(
-                        device_id=data.device_id,
-                        crash_event=crash_event,
-                        ai_analysis=ai_analysis
-                    )
+                # Send GPS location to loved ones for confirmed crashes
+                notify_loved_ones_with_gps(
+                    device_id=data.device_id,
+                    crash_event=crash_event,
+                )
         
         return CrashAlertResponse(
             is_crash=ai_analysis['is_crash'],
@@ -2280,39 +2635,45 @@ const {
 1. **ESP32 Device (Embedded)**
    - Reads MPU6050 sensor data (accelerometer + gyroscope)
    - Calculates roll, pitch, and tilt detection
-   - Reads GPS data (latitude, longitude, altitude, satellites, fix status)
    - Sends sensor data via **Bluetooth Low Energy (BLE)** to mobile app
-   - Sends GPS data via **BLE** to mobile app (same interval)
    - **Transmission interval: Every 2 seconds** (good balance between real-time monitoring and battery efficiency)
    - Sensor data format: `{ax, ay, az, roll, pitch, tilt_detected, timestamp}`
-   - GPS data format: `{type: "gps_data", gps: {fix, satellites, latitude, longitude, altitude}}`
 
 2. **Mobile App (Tier 1 - Client-Side)**
    - Receives sensor data via BLE connection
-   - Receives GPS data via BLE connection (stored locally in DeviceContext)
+   - Collects GPS data from phone using `expo-location` (optional - requires permission)
+   - Calculates speed from GPS coordinates (distance/time between updates)
    - Calculates G-force: `sqrt(ax² + ay² + az²)`
    - Checks thresholds:
      - G-force ≥ 8g (configurable)
      - Tilt ≥ 90° (configurable)
+     - Speed change (sudden deceleration) - optional immediate alert
    - If threshold exceeded:
      - **Phase 1**: Logs to console with threshold details (<100ms)
-     - **Phase 2**: Sends alert to backend API with sensor data + GPS location
+     - **Phase 2**: Sends alert to backend API with sensor data + GPS location + speed
    - GPS data stored locally only (not sent to backend until crash detected)
-   - Continues receiving data every 2 seconds
+   - Continues receiving sensor data every 2 seconds
+   - GPS updates continuously (every 1 second or 1 meter movement)
 
 3. **Backend (Tier 2 - AI Analysis)**
-   - Receives threshold alert from mobile app (with GPS location if available)
+   - Receives threshold alert from mobile app (with GPS location and speed if available)
    - Retrieves recent sensor data context (last 30 seconds from database)
-   - Formats data for Gemini AI
+   - Formats data for Gemini AI (includes sensor data, GPS location, and speed)
    - Calls Gemini AI API for intelligent analysis
-   - Processes AI response (is_crash, confidence, severity, reasoning)
-   - If confirmed crash:
-     - Creates CrashEvent in database (with GPS location)
-     - Sends FCM push notification to mobile app (with GPS location)
-     - Sends GPS location to all active loved ones (emergency contacts)
-   - If false positive:
-     - Logs for learning/improvement
-     - Optionally notifies user of false alarm
+     - AI considers: G-force, tilt, speed, speed change, GPS location
+     - More accurate analysis with speed data (sudden deceleration = crash indicator)
+  - Processes AI response (is_crash, confidence, severity, reasoning)
+  - Creates CrashEvent in database for ALL AI analyses (both confirmed crashes AND false positives)
+    - Uses `is_confirmed_crash` field to distinguish: `True` for confirmed crashes, `False` for false positives
+    - Stores all AI analysis data (confidence, reasoning, key_indicators, false_positive_risk)
+    - Includes GPS location and speed if available (both confirmed and false positive events)
+    - **Benefits**: Enables tracking false positive rates, model improvement, analytics, and user feedback correlation
+  - If confirmed crash (`is_confirmed_crash=True`):
+    - Sends FCM push notification to mobile app (with GPS location and speed)
+    - Sends GPS location and speed to all active loved ones (emergency contacts)
+  - If false positive (`is_confirmed_crash=False`):
+    - Event is still stored in database for analytics and improvement
+    - No push notifications sent (prevents user fatigue from false alarms)
 
 4. **Firebase Cloud Messaging (FCM)**
    - Delivers push notification to mobile app (device owner)
@@ -2335,15 +2696,21 @@ const {
 - **Tier 1 (Client Threshold Check)**: <100ms (immediate, on-device calculation)
 - **Rate Limiting Check**: <1ms (client-side throttling prevents excessive calls)
 - **Tier 2 (Backend AI Analysis)**: 1-3 seconds (Gemini API call + processing)
+  - **Context Retrieval**: Varies based on user's crash alert interval
+    - 10s interval: 30s sensor data, 1 crash event
+    - 30s interval: 90s sensor data, 1 crash event
+    - 60s interval: 180s sensor data, 3 crash events
 - **FCM Delivery**: <1 second (push notification delivery)
 - **Total Alert Time**: ~2-4 seconds from threshold trigger to user notification
 - **Maximum Detection Latency**: ~4-6 seconds (2s data interval + 2-4s processing)
-- **Minimum Interval Between Alerts**: Configurable (default: 15 seconds) - prevents API spam
+- **Minimum Interval Between Alerts**: Configurable in backend (10-60 seconds, default: 15 seconds) - prevents API spam
 
-**Note**: The 2-second data transmission interval is a good balance:
+**Note**: The 2-second sensor data transmission interval is a good balance:
 - **Fast enough** to detect crashes quickly (within 2-4 seconds)
 - **Battery efficient** for ESP32 device (BLE is low power)
 - **Manageable data volume** for processing and storage
+
+**Note**: GPS data is collected from the phone continuously (every 1 second or 1 meter movement) using `expo-location`. This provides more accurate location data and enables speed calculation. GPS tracking is optional - users can deny location permission, and the system will still work with sensor data only.
 
 ---
 
@@ -2360,18 +2727,29 @@ export const CRASH_DETECTION_CONFIG = {
   consecutiveTriggers: 2,      // Require 2 consecutive triggers
   lookbackSeconds: 30,         // Context window for AI (30 seconds)
   crashAlertIntervalSeconds: 15, // Minimum interval between crash alert API calls (configurable)
+  speedChangeThreshold: 10.0,  // Speed change threshold (m/s²) for sudden deceleration detection (optional)
+  enableSpeedBasedDetection: false, // Enable speed-based threshold detection (optional)
 } as const;
 ```
 
 ### Rate Limiting Configuration
 
-**File**: `frontend/lib/storage.ts`
+**File**: `backend/sentry/core/models/user_settings.py`
 
-The crash alert interval is stored in SecureStore and can be configured via the Settings page:
+The crash alert interval is stored in the `UserSettings` model and can be configured via the Settings page:
 - **Default**: 15 seconds
-- **Range**: 1-300 seconds
-- **Storage Key**: `sentry_crash_alert_interval`
-- **Auto-refresh**: Interval setting is reloaded every 5 seconds to pick up changes
+- **Range**: 10-60 seconds (enforced validation)
+- **Storage**: Backend database (OneToOneField with User)
+- **API Endpoints**:
+  - `GET /api/v1/core/user/settings` - Get user's crash alert interval
+  - `PUT /api/v1/core/user/settings` - Update crash alert interval
+- **Dynamic Context**: Higher interval values allow more sensor data and crash events to be analyzed:
+  - **10 seconds**: 30s sensor lookback, 1 crash event
+  - **30 seconds**: 90s sensor lookback, 1 crash event
+  - **60 seconds**: 180s sensor lookback, 3 crash events
+- **Formula**: 
+  - Sensor lookback: `min(30 + (interval - 10) * 3, 180)` seconds
+  - Crash events: `max(1, interval // 20)` events
 
 **File**: `frontend/app/(tabs)/settings.tsx`
 
@@ -2395,7 +2773,7 @@ Device API endpoints use API key authentication:
 # Gemini AI
 gemini_api_key: str | None = None
 gemini_model: str = "gemini-pro"
-gemini_analysis_lookback_seconds: int = 30
+gemini_analysis_lookback_seconds: int = 30  # Note: Now dynamically calculated based on user interval
 
 # FCM
 fcm_credentials_path: str | None = None
@@ -2405,6 +2783,29 @@ crash_confidence_threshold: float = 0.7  # Minimum confidence for alert
 crash_high_severity_g_force: float = 15.0
 crash_medium_severity_g_force: float = 12.0
 ```
+
+**File**: `backend/sentry/core/models/user_settings.py`
+
+```python
+# User Settings Model
+class UserSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")
+    crash_alert_interval_seconds = models.IntegerField(
+        default=15,
+        help_text="Minimum time between crash alert API calls (10-60 seconds)",
+    )
+    # Validation: 10 <= crash_alert_interval_seconds <= 60
+```
+
+**Dynamic Context Calculation**:
+- **Sensor Data Lookback**: `min(30 + (interval - 10) * 3, 180)` seconds
+  - 10s interval → 30s lookback
+  - 30s interval → 90s lookback
+  - 60s interval → 180s lookback
+- **Crash Event History**: `max(1, interval // 20)` events
+  - 10s interval → 1 event
+  - 30s interval → 1 event
+  - 60s interval → 3 events
 
 ---
 

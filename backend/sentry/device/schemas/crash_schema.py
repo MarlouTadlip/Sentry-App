@@ -6,11 +6,12 @@ from ninja import Schema
 class GPSDataSchema(Schema):
     """GPS data schema."""
 
-    fix: bool
-    satellites: int
     latitude: float | None
     longitude: float | None
     altitude: float | None
+    accuracy: float | None  # GPS accuracy in meters
+    speed: float | None  # Speed in m/s (calculated from GPS)
+    speed_change: float | None  # Speed change in m/s² (sudden deceleration)
     timestamp: str
 
 
@@ -58,4 +59,45 @@ class CrashAlertResponse(Schema):
     reasoning: str
     key_indicators: list[str]
     false_positive_risk: float
+    crash_event_id: int | None = None  # ID of created crash event (if any)
 
+
+class CrashEventSchema(Schema):
+    """Crash event schema for API responses."""
+
+    id: int
+    device_id: str
+    crash_timestamp: str
+    is_confirmed_crash: bool
+    confidence_score: float | None
+    severity: str
+    crash_type: str
+    ai_reasoning: str
+    key_indicators: list[str]
+    false_positive_risk: float | None
+    max_g_force: float | None
+    crash_latitude: float | None
+    crash_longitude: float | None
+    crash_altitude: float | None
+    gps_accuracy_at_crash: float | None
+    speed_at_crash: float | None
+    speed_change_at_crash: float | None
+    max_speed_before_crash: float | None
+    user_feedback: str | None
+    user_comments: str | None
+    created_at: str
+    updated_at: str
+
+
+class CrashFeedbackRequest(Schema):
+    """Request schema for user feedback on crash events."""
+
+    user_feedback: str  # 'true_positive' or 'false_positive'
+    user_comments: str | None = None
+
+
+class CrashFeedbackResponse(Schema):
+    """Response schema for crash feedback submission."""
+
+    success: bool
+    message: str

@@ -15,16 +15,5 @@ export interface ThresholdResult {
   timestamp: number;
 }
 
-export interface CrashEvent {
-  id: string;
-  device_id: string;
-  crash_timestamp: string;
-  is_confirmed_crash: boolean;
-  confidence_score: number | null;
-  severity: 'low' | 'medium' | 'high';
-  crash_type: string;
-  ai_reasoning: string;
-  key_indicators: string[];
-  false_positive_risk: number | null;
-}
+// Note: CrashEvent type moved to types/api.ts to match backend schema
 

@@ -8,7 +8,7 @@ import { useDevice } from '@/context/DeviceContext';
 import { useCrash } from '@/context/CrashContext';
 import { useSendCrashAlert } from '@/hooks/mutations/useSendCrashAlert';
 import { CRASH_DETECTION_CONFIG } from '@/utils/constants';
-import { getStoredCrashAlertInterval } from '@/lib/storage';
+import { getUserSettings } from '@/services/api/user';
 
 interface UseCrashDetectionOptions {
   enabled?: boolean;
@@ -42,19 +42,26 @@ export function useCrashDetection(
   const { currentGPSData } = useDevice();
   
   // Get CrashContext to store AI response
-  const { setAIResponse, setProcessing } = useCrash();
+  const { setAIResponse, setCrashEventId, setProcessing } = useCrash();
   
   // Phase 2: Use TanStack Query mutation for sending crash alert
   const sendCrashAlertMutation = useSendCrashAlert();
 
-  // Load crash alert interval from storage on mount and periodically refresh
+  // Load crash alert interval from backend on mount and periodically refresh
   useEffect(() => {
     const loadInterval = async () => {
-      const storedInterval = await getStoredCrashAlertInterval();
-      if (storedInterval) {
-        alertIntervalRef.current = storedInterval * 1000; // Convert to milliseconds
-      } else {
-        // Use default if no stored value
+      try {
+        // Fetch from backend API instead of SecureStore
+        const settings = await getUserSettings();
+        if (settings.crash_alert_interval_seconds) {
+          alertIntervalRef.current = settings.crash_alert_interval_seconds * 1000; // Convert to milliseconds
+        } else {
+          // Use default if no value
+          alertIntervalRef.current = CRASH_DETECTION_CONFIG.crashAlertIntervalSeconds * 1000;
+        }
+      } catch (error) {
+        console.error('Error loading crash alert interval:', error);
+        // Use default on error
         alertIntervalRef.current = CRASH_DETECTION_CONFIG.crashAlertIntervalSeconds * 1000;
       }
     };
@@ -125,9 +132,11 @@ export function useCrashDetection(
               confidence: aiResponse.confidence,
               severity: aiResponse.severity,
               reasoning: aiResponse.reasoning,
+              crash_event_id: aiResponse.crash_event_id,
             });
             // Store AI response in context
             setAIResponse(aiResponse);
+            setCrashEventId(aiResponse.crash_event_id || null);
             setProcessing(false);
             onAIConfirmation?.(aiResponse.is_crash);
             // Reset detector after processing
@@ -147,7 +156,7 @@ export function useCrashDetection(
 
       onThresholdExceeded?.(result);
     }
-  }, [sensorData, enabled, onThresholdExceeded, onAIConfirmation, currentGPSData, sendCrashAlertMutation, setAIResponse, setProcessing]);
+  }, [sensorData, enabled, onThresholdExceeded, onAIConfirmation, currentGPSData, sendCrashAlertMutation, setAIResponse, setCrashEventId, setProcessing]);
 
   return {
     lastResult,

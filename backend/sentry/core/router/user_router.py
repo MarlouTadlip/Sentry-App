@@ -12,7 +12,11 @@ from core.controllers.user_controller import (
     update_user_info,
     update_user_profile_picture,
 )
-from core.schemas import UserUpdateRequest
+from core.controllers.user_settings_controller import (
+    get_user_settings,
+    update_user_settings,
+)
+from core.schemas import UserUpdateRequest, UserSettingsUpdateRequest
 
 user_router = Router(tags=["user"])
 
@@ -41,3 +45,20 @@ def update_profile_picture_endpoint(
 ) -> dict[str, Any]:
     """Update current user's profile picture endpoint."""
     return update_user_profile_picture(request, profile_picture)
+
+
+@user_router.get("/settings", auth=JwtAuth())
+def get_user_settings_endpoint(
+    request: HttpRequest,
+) -> dict[str, Any]:
+    """Get user settings endpoint."""
+    return get_user_settings(request)
+
+
+@user_router.put("/settings", auth=JwtAuth())
+def update_user_settings_endpoint(
+    request: HttpRequest,
+    data: UserSettingsUpdateRequest,
+) -> dict[str, Any]:
+    """Update user settings endpoint."""
+    return update_user_settings(request, data.model_dump())

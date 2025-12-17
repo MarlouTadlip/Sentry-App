@@ -24,6 +24,12 @@ export class BLEManager {
   private dataBuffer: string = ''; // Buffer for accumulating BLE packets
   private gpsDataBuffer: string = ''; // Buffer for accumulating GPS BLE packets
   private bufferTimeout: ReturnType<typeof setTimeout> | null = null;
+  private reconnectCallback?: (deviceId: string) => void;
+  private shouldReconnect: boolean = false;
+  private reconnectDeviceId: string | null = null;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private maxReconnectAttempts: number = 5;
+  private reconnectAttempts: number = 0;
 
   constructor() {
     try {
@@ -437,8 +443,10 @@ export class BLEManager {
           } else {
             console.log('🔌 Device disconnected:', device?.id);
           }
-          this.connectedDevice = null;
-          this.connectedDeviceInstance = null;
+          
+          const disconnectedDeviceId = device?.id || deviceId;
+          
+          // Clean up subscriptions
           if (this.monitorSubscription) {
             this.monitorSubscription.remove();
             this.monitorSubscription = null;
@@ -446,6 +454,21 @@ export class BLEManager {
           if (this.gpsMonitorSubscription) {
             this.gpsMonitorSubscription.remove();
             this.gpsMonitorSubscription = null;
+          }
+          
+          // Clear device references
+          this.connectedDevice = null;
+          this.connectedDeviceInstance = null;
+          
+          // Attempt reconnection if enabled
+          if (this.shouldReconnect && disconnectedDeviceId && this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectDeviceId = disconnectedDeviceId;
+            this.attemptReconnection();
+          } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.warn(`⚠️ Max reconnection attempts (${this.maxReconnectAttempts}) reached. Stopping reconnection.`);
+            this.shouldReconnect = false;
+            this.reconnectDeviceId = null;
+            this.reconnectAttempts = 0;
           }
         });
 
@@ -461,6 +484,10 @@ export class BLEManager {
         };
 
         console.log(`✅ Connected to device: ${this.connectedDevice.name}`);
+        
+        // Reset reconnection attempts on successful connection
+        this.reconnectAttempts = 0;
+        
         return true;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
@@ -487,6 +514,57 @@ export class BLEManager {
   }
 
   /**
+   * Enable automatic reconnection on disconnect
+   * @param enabled Whether to enable reconnection
+   * @param deviceId Device ID to reconnect to (optional, uses last connected device if not provided)
+   */
+  setReconnectionEnabled(enabled: boolean, deviceId?: string): void {
+    this.shouldReconnect = enabled;
+    if (deviceId) {
+      this.reconnectDeviceId = deviceId;
+    }
+    if (!enabled) {
+      // Cancel any pending reconnection
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+      }
+      this.reconnectAttempts = 0;
+    }
+  }
+
+  /**
+   * Attempt to reconnect to the device
+   */
+  private async attemptReconnection(): Promise<void> {
+    if (!this.reconnectDeviceId || !this.shouldReconnect) {
+      return;
+    }
+
+    this.reconnectAttempts += 1;
+    const delayMs = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000); // Exponential backoff, max 30s
+    
+    console.log(
+      `🔄 Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delayMs / 1000}s...`
+    );
+
+    this.reconnectTimeout = setTimeout(async () => {
+      try {
+        const connected = await this.connect(this.reconnectDeviceId!, 1, 10000); // Single attempt with 10s timeout
+        if (connected) {
+          console.log('✅ Reconnection successful!');
+          this.reconnectAttempts = 0; // Reset on success
+        } else {
+          // Reconnection failed, will retry on next disconnect or timeout
+          console.warn(`⚠️ Reconnection attempt ${this.reconnectAttempts} failed`);
+        }
+      } catch (error) {
+        console.error('❌ Reconnection error:', error);
+      }
+    }, delayMs);
+  }
+
+  /**
    * Disconnect from device
    */
   async disconnect(): Promise<void> {
@@ -509,6 +587,14 @@ export class BLEManager {
         console.log('ℹ️ Device connection already cancelled or error during cancel:', error);
       }
 
+      // Disable reconnection when manually disconnecting
+      this.shouldReconnect = false;
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+      }
+      this.reconnectAttempts = 0;
+      
       // Clear subscription references AFTER canceling connection
       // Don't call remove() as cancelConnection() already handles cleanup in native code
       // Trying to remove() after cancel can cause NullPointerException
@@ -671,12 +757,16 @@ export class BLEManager {
       // Validate GPS data structure
       if (data.type === 'gps_data' && data.gps) {
         const gps = data.gps;
+        // Convert old ESP32 GPS format to new GPSData structure
+        // ESP32 sends: {fix, satellites, latitude, longitude, altitude}
+        // New format: {latitude, longitude, altitude, accuracy, speed, speed_change, timestamp}
         return {
-          fix: gps.fix || false,
-          satellites: gps.satellites || 0,
           latitude: gps.latitude !== undefined && gps.latitude !== null ? gps.latitude : null,
           longitude: gps.longitude !== undefined && gps.longitude !== null ? gps.longitude : null,
           altitude: gps.altitude !== undefined && gps.altitude !== null ? gps.altitude : null,
+          accuracy: gps.accuracy !== undefined && gps.accuracy !== null ? gps.accuracy : (gps.fix ? 10 : null), // Estimate accuracy if fix is true, null otherwise
+          speed: gps.speed !== undefined && gps.speed !== null ? gps.speed : null, // ESP32 may not send speed
+          speed_change: null, // Cannot calculate from single reading
           timestamp: new Date().toISOString(),
         };
       } else {

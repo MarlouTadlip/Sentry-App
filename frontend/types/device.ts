@@ -12,11 +12,12 @@ export interface SensorReading {
 }
 
 export interface GPSData {
-  fix: boolean;
-  satellites: number;
   latitude: number | null;
   longitude: number | null;
   altitude: number | null;
+  accuracy: number | null; // GPS accuracy in meters
+  speed: number | null; // Speed in m/s (calculated from GPS coordinates)
+  speed_change: number | null; // Speed change in m/s² (sudden deceleration)
   timestamp: string;
 }
 

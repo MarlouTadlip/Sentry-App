@@ -34,8 +34,12 @@ class CrashEvent(models.Model):
     crash_latitude = models.FloatField(null=True, blank=True)
     crash_longitude = models.FloatField(null=True, blank=True)
     crash_altitude = models.FloatField(null=True, blank=True)
-    gps_fix_at_crash = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
-    satellites_at_crash = models.IntegerField(null=True, blank=True)
+    gps_accuracy_at_crash = models.FloatField(null=True, blank=True)  # GPS accuracy in meters
+    
+    # Speed Data at Crash Time
+    speed_at_crash = models.FloatField(null=True, blank=True)  # Speed in m/s
+    speed_change_at_crash = models.FloatField(null=True, blank=True)  # Speed change in m/s² (sudden deceleration)
+    max_speed_before_crash = models.FloatField(null=True, blank=True)  # Maximum speed in last 30 seconds before crash (m/s)
     alert_sent = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
     user_feedback = models.CharField(
         max_length=20,

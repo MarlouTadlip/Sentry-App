@@ -1,4 +1,4 @@
-import { History, Home, Settings, Users } from "@tamagui/lucide-icons";
+import { History, Home, Settings, Users, Shield } from "@tamagui/lucide-icons";
 import { Tabs, Redirect, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/useToast";
 
 const _layout = () => {
   const colors = useThemeColors();
-  const { isAuthenticated, isVerified, isInitializing } = useAuth();
+  const { isAuthenticated, isVerified, isInitializing, user } = useAuth();
   const toast = useToast();
   const router = useRouter();
 
@@ -95,6 +95,17 @@ const _layout = () => {
           headerTitle: "Sentry",
           headerTitleAlign: "center",
           tabBarIcon: () => <Settings />,
+        }}
+      ></Tabs.Screen>
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: "Admin",
+          headerTitle: "Admin Panel",
+          headerTitleAlign: "center",
+          tabBarIcon: () => <Shield />,
+          // Hide from tab bar - only accessible via settings button
+          href: null,
         }}
       ></Tabs.Screen>
     </Tabs>
